@@ -114,6 +114,31 @@ export async function deleteItem(itemId: string) {
   if (error) throw error;
 }
 
+export async function updateItemCategories(input: {
+  itemId: string;
+  brand: string;
+  clothingType: string;
+  color: string;
+  material: string[];
+  season: string[];
+}) {
+  const { data, error } = await supabase
+    .from('clothing_items')
+    .update({
+      brand: input.brand.trim() || null,
+      clothing_type: input.clothingType.trim() || null,
+      color: input.color.trim() || null,
+      material: input.material.length ? input.material : null,
+      season: input.season.length ? input.season : null
+    })
+    .eq('id', input.itemId)
+    .select('*')
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
 export async function deleteItemViaBackend(input: { itemId: string; accessToken: string }) {
   const baseUrl = env.backendUrl.trim().replace(/\/+$/, '');
   if (!baseUrl) {

@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { ActivityIndicator, Alert, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
@@ -7,7 +7,8 @@ import { useFocusEffect } from '@react-navigation/native';
 import { listClosets } from '../../services/closetService';
 import { useAuth } from '../../services/AuthContext';
 import { getCachedSignedImageUrl } from '../../services/imageCacheService';
-import { deleteItem, deleteItemViaBackend, getItem, listItemClosetMappings, listItemImages } from '../../services/itemService';
+import { createItemMetadataOption, listItemMetadataOptions, type ItemMetadataCategory } from '../../services/itemMetadataOptionService';
+import { deleteItem, deleteItemViaBackend, getItem, listItemClosetMappings, listItemImages, updateItemCategories } from '../../services/itemService';
 import { refreshWardrobeData } from '../../services/wardrobeDataService';
 import type { Database } from '../../types/database';
 import type { AppStackParamList } from '../../types/navigation';
@@ -25,33 +26,90 @@ const parseCommaValues = (value: string | null) =>
     .map((entry) => entry.trim())
     .filter(Boolean);
 
+const DEFAULT_OPTIONS: Record<ItemMetadataCategory, string[]> = {
+  brand: ['Nike', 'Adidas', 'Uniqlo', 'Zara', "Levi's", 'H&M', 'Patagonia', 'Lululemon', 'The North Face', 'Gap'],
+  clothing_type: ['T-Shirt', 'Shirt', 'Sweater', 'Hoodie', 'Jacket', 'Coat', 'Jeans', 'Pants', 'Skirt', 'Dress', 'Shorts'],
+  color: ['Black', 'White', 'Gray', 'Navy', 'Blue', 'Green', 'Red', 'Pink', 'Purple', 'Brown', 'Beige', 'Yellow'],
+  material: ['Cotton', 'Denim', 'Wool', 'Linen', 'Silk', 'Polyester', 'Nylon', 'Leather', 'Cashmere', 'Rayon'],
+  season: ['Spring', 'Summer', 'Fall', 'Winter']
+};
+
+const EMPTY_CUSTOM_OPTIONS: Record<ItemMetadataCategory, string[]> = {
+  brand: [],
+  clothing_type: [],
+  color: [],
+  material: [],
+  season: []
+};
+
+const mergeOptions = (defaultOptions: string[], customOptions: string[]) => {
+  const seen = new Set(defaultOptions.map((option) => option.toLowerCase()));
+  const merged = [...defaultOptions];
+  for (const option of customOptions) {
+    const normalized = option.toLowerCase();
+    if (seen.has(normalized)) continue;
+    merged.push(option);
+    seen.add(normalized);
+  }
+  return merged;
+};
+
+const toggleOption = (current: string[], value: string) =>
+  current.includes(value) ? current.filter((entry) => entry !== value) : [...current, value];
+
 export default function ItemDetailScreen({ navigation, route }: Props) {
   const { itemId } = route.params;
   const { session } = useAuth();
+  const userId = session?.user.id;
 
   const [item, setItem] = useState<ItemRow | null>(null);
   const [extraImages, setExtraImages] = useState<ItemImageRow[]>([]);
   const [selectedClosetNames, setSelectedClosetNames] = useState<string[]>([]);
   const [primaryImageUrl, setPrimaryImageUrl] = useState<string | null>(null);
+  const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
+  const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
+  const [selectedColors, setSelectedColors] = useState<string[]>([]);
+  const [selectedMaterials, setSelectedMaterials] = useState<string[]>([]);
+  const [selectedSeasons, setSelectedSeasons] = useState<string[]>([]);
+  const [customOptions, setCustomOptions] = useState<Record<ItemMetadataCategory, string[]>>(EMPTY_CUSTOM_OPTIONS);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
+  const [savingCategories, setSavingCategories] = useState(false);
   const [errorText, setErrorText] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
     setLoading(true);
     setErrorText(null);
     try {
-      const [itemRow, imageRows, closetRows, mappingRows] = await Promise.all([
+      const [itemRow, imageRows, closetRows, mappingRows, metadataOptions] = await Promise.all([
         withRetry(() => getItem(itemId)),
         withRetry(() => listItemImages(itemId)),
         withRetry(() => listClosets()),
-        withRetry(() => listItemClosetMappings())
+        withRetry(() => listItemClosetMappings()),
+        withRetry(() => listItemMetadataOptions())
       ]);
 
       setItem(itemRow);
       setExtraImages(imageRows);
+      setSelectedBrands(parseCommaValues(itemRow.brand));
+      setSelectedTypes(parseCommaValues(itemRow.clothing_type));
+      setSelectedColors(parseCommaValues(itemRow.color));
+      setSelectedMaterials(itemRow.material ?? []);
+      setSelectedSeasons(itemRow.season ?? []);
       const signedUrl = await withRetry(() => getCachedSignedImageUrl('items', itemRow.primary_image_path));
       setPrimaryImageUrl(signedUrl);
+
+      const grouped: Record<ItemMetadataCategory, string[]> = {
+        brand: [],
+        clothing_type: [],
+        color: [],
+        material: [],
+        season: []
+      };
+      metadataOptions.forEach((row) => {
+        grouped[row.category].push(row.label);
+      });
+      setCustomOptions(grouped);
 
       const closetLookup = new Map(closetRows.map((closet: ClosetRow) => [closet.id, closet.name]));
       const names = mappingRows
@@ -65,6 +123,11 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
       setExtraImages([]);
       setSelectedClosetNames([]);
       setPrimaryImageUrl(null);
+      setSelectedBrands([]);
+      setSelectedTypes([]);
+      setSelectedColors([]);
+      setSelectedMaterials([]);
+      setSelectedSeasons([]);
     } finally {
       setLoading(false);
     }
@@ -76,9 +139,62 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
     }, [loadData])
   );
 
-  const selectedBrands = useMemo(() => parseCommaValues(item?.brand ?? null), [item?.brand]);
-  const selectedTypes = useMemo(() => parseCommaValues(item?.clothing_type ?? null), [item?.clothing_type]);
-  const selectedColors = useMemo(() => parseCommaValues(item?.color ?? null), [item?.color]);
+  const brandOptions = useMemo(() => mergeOptions(DEFAULT_OPTIONS.brand, customOptions.brand), [customOptions.brand]);
+  const typeOptions = useMemo(() => mergeOptions(DEFAULT_OPTIONS.clothing_type, customOptions.clothing_type), [customOptions.clothing_type]);
+  const colorOptions = useMemo(() => mergeOptions(DEFAULT_OPTIONS.color, customOptions.color), [customOptions.color]);
+  const materialOptions = useMemo(() => mergeOptions(DEFAULT_OPTIONS.material, customOptions.material), [customOptions.material]);
+  const seasonOptions = useMemo(() => mergeOptions(DEFAULT_OPTIONS.season, customOptions.season), [customOptions.season]);
+
+  const handleAddCustomOption = async (category: ItemMetadataCategory, value: string) => {
+    const trimmed = value.trim();
+    if (!trimmed) return;
+    if (!userId) {
+      throw new Error('You need to sign in again before adding a custom option.');
+    }
+
+    const existing = [...DEFAULT_OPTIONS[category], ...customOptions[category]];
+    if (existing.some((entry) => entry.toLowerCase() === trimmed.toLowerCase())) return;
+
+    await withRetry(() =>
+      createItemMetadataOption({
+        userId,
+        category,
+        label: trimmed
+      })
+    );
+
+    setCustomOptions((current) => ({
+      ...current,
+      [category]: [...current[category], trimmed].sort((a, b) => a.localeCompare(b))
+    }));
+  };
+
+  const handleSaveCategoryChanges = async () => {
+    if (!item) return;
+    setSavingCategories(true);
+    setErrorText(null);
+    try {
+      const updated = await withRetry(() =>
+        updateItemCategories({
+          itemId: item.id,
+          brand: selectedBrands.join(', '),
+          clothingType: selectedTypes.join(', '),
+          color: selectedColors.join(', '),
+          material: selectedMaterials,
+          season: selectedSeasons
+        })
+      );
+      setItem(updated);
+      if (session?.user.id) {
+        await refreshWardrobeData(session.user.id).catch(() => undefined);
+      }
+      Alert.alert('Saved', 'Category changes were updated.');
+    } catch (error) {
+      setErrorText(error instanceof Error ? error.message : 'Could not save changes.');
+    } finally {
+      setSavingCategories(false);
+    }
+  };
 
   const handleDeleteItem = async () => {
     if (!item) return;
@@ -135,15 +251,57 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
 
           <Text style={styles.sectionTitle}>Metadata</Text>
           <ReadonlyField label="Item Name" value={item.name} />
-          <OptionChips label="Brand" values={selectedBrands} />
-          <OptionChips label="Clothing Type" values={selectedTypes} />
-          <OptionChips label="Color" values={selectedColors} />
+          <OptionSelector
+            disabled={savingCategories}
+            label="Brand"
+            onAddCustomOption={async (value) => handleAddCustomOption('brand', value)}
+            onToggle={(value) => setSelectedBrands((current) => toggleOption(current, value))}
+            options={brandOptions}
+            selected={selectedBrands}
+          />
+          <OptionSelector
+            disabled={savingCategories}
+            label="Clothing Type"
+            onAddCustomOption={async (value) => handleAddCustomOption('clothing_type', value)}
+            onToggle={(value) => setSelectedTypes((current) => toggleOption(current, value))}
+            options={typeOptions}
+            selected={selectedTypes}
+          />
+          <OptionSelector
+            disabled={savingCategories}
+            label="Color"
+            onAddCustomOption={async (value) => handleAddCustomOption('color', value)}
+            onToggle={(value) => setSelectedColors((current) => toggleOption(current, value))}
+            options={colorOptions}
+            selected={selectedColors}
+          />
           <ReadonlyField
             label="Price"
             value={item.price_amount ? `${item.price_currency || 'USD'} ${item.price_amount}` : 'N/A'}
           />
-          <OptionChips label="Materials" values={item.material ?? []} />
-          <OptionChips label="Seasons" values={item.season ?? []} />
+          <OptionSelector
+            disabled={savingCategories}
+            label="Materials"
+            onAddCustomOption={async (value) => handleAddCustomOption('material', value)}
+            onToggle={(value) => setSelectedMaterials((current) => toggleOption(current, value))}
+            options={materialOptions}
+            selected={selectedMaterials}
+          />
+          <OptionSelector
+            disabled={savingCategories}
+            label="Seasons"
+            onAddCustomOption={async (value) => handleAddCustomOption('season', value)}
+            onToggle={(value) => setSelectedSeasons((current) => toggleOption(current, value))}
+            options={seasonOptions}
+            selected={selectedSeasons}
+          />
+          <Pressable
+            disabled={savingCategories}
+            onPress={handleSaveCategoryChanges}
+            style={[styles.primary, savingCategories && styles.disabled]}
+          >
+            <Text style={styles.primaryText}>{savingCategories ? 'Saving...' : 'Save Category Changes'}</Text>
+          </Pressable>
           <ReadonlyField
             label="Custom Fields"
             value={item.custom_fields ? JSON.stringify(item.custom_fields, null, 2) : 'N/A'}
@@ -208,6 +366,101 @@ function OptionChips({ label, values }: { label: string; values: string[] }) {
   );
 }
 
+function OptionSelector({
+  label,
+  options,
+  selected,
+  onToggle,
+  onAddCustomOption,
+  disabled = false
+}: {
+  label: string;
+  options: string[];
+  selected: string[];
+  onToggle: (value: string) => void;
+  onAddCustomOption: (value: string) => Promise<void>;
+  disabled?: boolean;
+}) {
+  const [isAddingCustom, setIsAddingCustom] = useState(false);
+  const [customOptionText, setCustomOptionText] = useState('');
+  const [savingCustom, setSavingCustom] = useState(false);
+
+  return (
+    <View style={styles.optionGroup}>
+      <View style={styles.optionHeader}>
+        <Text style={styles.optionLabel}>{label}</Text>
+        <Pressable
+          disabled={disabled || savingCustom}
+          onPress={() => {
+            setIsAddingCustom((current) => !current);
+            setCustomOptionText('');
+          }}
+          style={[styles.addOptionButton, (disabled || savingCustom) && styles.disabled]}
+        >
+          <Text style={styles.addOptionButtonText}>+ Add</Text>
+        </Pressable>
+      </View>
+      {isAddingCustom ? (
+        <View style={styles.addOptionRow}>
+          <TextInput
+            editable={!disabled && !savingCustom}
+            onChangeText={setCustomOptionText}
+            placeholder={`Custom ${label.toLowerCase()}`}
+            style={[styles.input, styles.addOptionInput]}
+            value={customOptionText}
+          />
+          <Pressable
+            disabled={disabled || savingCustom}
+            onPress={async () => {
+              const trimmed = customOptionText.trim();
+              if (!trimmed) return;
+              setSavingCustom(true);
+              try {
+                await onAddCustomOption(trimmed);
+                onToggle(trimmed);
+                setCustomOptionText('');
+                setIsAddingCustom(false);
+              } catch (error) {
+                Alert.alert('Could not add option', error instanceof Error ? error.message : 'Unknown error');
+              } finally {
+                setSavingCustom(false);
+              }
+            }}
+            style={[styles.addOptionAction, styles.addOptionConfirm, (disabled || savingCustom) && styles.disabled]}
+          >
+            <Text style={styles.addOptionActionText}>Add</Text>
+          </Pressable>
+          <Pressable
+            disabled={disabled || savingCustom}
+            onPress={() => {
+              setCustomOptionText('');
+              setIsAddingCustom(false);
+            }}
+            style={[styles.addOptionAction, (disabled || savingCustom) && styles.disabled]}
+          >
+            <Text style={styles.addOptionActionText}>Cancel</Text>
+          </Pressable>
+        </View>
+      ) : null}
+      <View style={styles.optionList}>
+        {options.map((option) => {
+          const isSelected = selected.includes(option);
+          return (
+            <Pressable
+              key={`${label}:${option}`}
+              disabled={disabled}
+              onPress={() => onToggle(option)}
+              style={[styles.chip, isSelected && styles.chipSelected, disabled && styles.disabled]}
+            >
+              <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>{option}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   container: {
     padding: 16,
@@ -232,6 +485,47 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#1e1f23'
+  },
+  optionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8
+  },
+  addOptionButton: {
+    borderWidth: 1.5,
+    borderColor: '#d9dce3',
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    backgroundColor: '#ffffff'
+  },
+  addOptionButtonText: {
+    color: '#232429',
+    fontWeight: '600'
+  },
+  addOptionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8
+  },
+  addOptionInput: {
+    flex: 1
+  },
+  addOptionAction: {
+    borderWidth: 1,
+    borderColor: '#d9dce3',
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    backgroundColor: '#ffffff'
+  },
+  addOptionConfirm: {
+    borderColor: '#9f9ea4'
+  },
+  addOptionActionText: {
+    color: '#292a30',
+    fontWeight: '600'
   },
   optionList: {
     flexDirection: 'row',
@@ -312,6 +606,17 @@ const styles = StyleSheet.create({
     paddingVertical: 14
   },
   dangerText: {
+    color: '#fff',
+    fontWeight: '700'
+  },
+  primary: {
+    marginTop: 2,
+    backgroundColor: '#141518',
+    borderRadius: 14,
+    alignItems: 'center',
+    paddingVertical: 12
+  },
+  primaryText: {
     color: '#fff',
     fontWeight: '700'
   },
