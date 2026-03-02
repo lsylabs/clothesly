@@ -32,7 +32,8 @@ export default function AppTabs() {
     <>
       <Tab.Navigator
         sceneContainerStyle={{
-          paddingTop: insets.top
+          paddingTop: insets.top,
+          backgroundColor: '#ffffff'
         }}
         screenOptions={{
           headerShown: false,

@@ -1,6 +1,6 @@
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
-import { NavigationContainer } from '@react-navigation/native';
+import { DefaultTheme, NavigationContainer } from '@react-navigation/native';
 
 import { useAuth } from '../services/AuthContext';
 import AppNavigator from './AppNavigator';
@@ -26,7 +26,19 @@ export default function RootNavigator() {
     );
   }
 
-  return <NavigationContainer>{session ? <AppNavigator /> : <AuthNavigator />}</NavigationContainer>;
+  return (
+    <NavigationContainer
+      theme={{
+        ...DefaultTheme,
+        colors: {
+          ...DefaultTheme.colors,
+          background: '#ffffff'
+        }
+      }}
+    >
+      {session ? <AppNavigator /> : <AuthNavigator />}
+    </NavigationContainer>
+  );
 }
 
 const styles = StyleSheet.create({
