@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Image, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { useAuth } from '../../services/AuthContext';
+import { createSignedImageUrl } from '../../services/mediaService';
 import { fetchWardrobeData, getWardrobeDataCache } from '../../services/wardrobeDataService';
 import type { Database } from '../../types/database';
 import type { AppStackParamList } from '../../types/navigation';
@@ -30,6 +31,7 @@ export default function WardrobeScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const [lastLoadedAt, setLastLoadedAt] = useState<number | null>(null);
+  const [itemImageUrls, setItemImageUrls] = useState<Record<string, string>>({});
 
   const applyWardrobeData = useCallback(
     (data: { closets: ClosetRow[]; items: ItemRow[]; mappings: MappingRow[]; loadedAt: number }) => {
@@ -84,6 +86,41 @@ export default function WardrobeScreen() {
       hydrateFromCache();
     }
   }, [hasLoadedOnce, hydrateFromCache]);
+
+  useEffect(() => {
+    let active = true;
+
+    const loadImageUrls = async () => {
+      if (!items.length) {
+        if (active) setItemImageUrls({});
+        return;
+      }
+
+      const entries = await Promise.all(
+        items.map(async (item) => {
+          try {
+            const url = await createSignedImageUrl('items', item.primary_image_path);
+            return [item.id, url ?? ''] as const;
+          } catch {
+            return [item.id, ''] as const;
+          }
+        })
+      );
+
+      if (!active) return;
+      setItemImageUrls(
+        entries.reduce<Record<string, string>>((acc, [id, url]) => {
+          if (url) acc[id] = url;
+          return acc;
+        }, {})
+      );
+    };
+
+    void loadImageUrls();
+    return () => {
+      active = false;
+    };
+  }, [items]);
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -152,7 +189,11 @@ export default function WardrobeScreen() {
         <>
           <Text style={styles.sectionTitle}>All Items ({items.length})</Text>
           {items.length ? (
-            items.map((item) => <ItemCard item={item} key={item.id} onPress={() => navigation.navigate('ItemDetail', { itemId: item.id })} />)
+            <ItemGrid
+              imageUrls={itemImageUrls}
+              items={items}
+              onPressItem={(itemId) => navigation.navigate('ItemDetail', { itemId })}
+            />
           ) : (
             <Text style={styles.empty}>No items yet.</Text>
           )}
@@ -182,9 +223,11 @@ export default function WardrobeScreen() {
               </View>
               <Text style={styles.sectionTitle}>Items in Selected Closet ({selectedClosetItems.length})</Text>
               {selectedClosetItems.length ? (
-                selectedClosetItems.map((item) => (
-                  <ItemCard item={item} key={item.id} onPress={() => navigation.navigate('ItemDetail', { itemId: item.id })} />
-                ))
+                <ItemGrid
+                  imageUrls={itemImageUrls}
+                  items={selectedClosetItems}
+                  onPressItem={(itemId) => navigation.navigate('ItemDetail', { itemId })}
+                />
               ) : (
                 <Text style={styles.empty}>No items in this closet yet.</Text>
               )}
@@ -198,15 +241,32 @@ export default function WardrobeScreen() {
   );
 }
 
-function ItemCard({ item, onPress }: { item: ItemRow; onPress: () => void }) {
+function ItemGrid({
+  items,
+  imageUrls,
+  onPressItem
+}: {
+  items: ItemRow[];
+  imageUrls: Record<string, string>;
+  onPressItem: (itemId: string) => void;
+}) {
   return (
-    <Pressable onPress={onPress} style={styles.itemCard}>
-      <Text style={styles.itemTitle}>{item.name}</Text>
-      <Text style={styles.itemMeta}>Type: {item.clothing_type || 'N/A'}</Text>
-      <Text style={styles.itemMeta}>Color: {item.color || 'N/A'}</Text>
-      <Text style={styles.itemMeta}>Brand: {item.brand || 'N/A'}</Text>
-      <Text style={styles.itemMeta}>Price: {item.price_amount ? `${item.price_currency || 'USD'} ${item.price_amount}` : 'N/A'}</Text>
-    </Pressable>
+    <View style={styles.itemGrid}>
+      {items.map((item) => (
+        <Pressable key={item.id} onPress={() => onPressItem(item.id)} style={styles.itemTile}>
+          {imageUrls[item.id] ? (
+            <Image resizeMode="cover" source={{ uri: imageUrls[item.id] }} style={styles.itemImage} />
+          ) : (
+            <View style={[styles.itemImage, styles.itemImagePlaceholder]}>
+              <Text style={styles.itemImagePlaceholderText}>No image</Text>
+            </View>
+          )}
+          <Text numberOfLines={1} style={styles.itemTitle}>
+            {item.name}
+          </Text>
+        </Pressable>
+      ))}
+    </View>
   );
 }
 
@@ -315,21 +375,33 @@ const styles = StyleSheet.create({
     marginTop: 4,
     color: '#6d6d74'
   },
-  itemCard: {
-    borderRadius: 16,
-    backgroundColor: '#f0f0f1',
-    borderWidth: 1,
-    borderColor: '#e5e4e7',
-    padding: 14,
-    gap: 4
+  itemGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12
+  },
+  itemTile: {
+    width: '48%',
+    gap: 8
+  },
+  itemImage: {
+    width: '100%',
+    aspectRatio: 1,
+    borderRadius: 14,
+    backgroundColor: '#e2e2e5'
+  },
+  itemImagePlaceholder: {
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  itemImagePlaceholderText: {
+    color: '#7a7b82',
+    fontWeight: '500'
   },
   itemTitle: {
     fontWeight: '700',
-    fontSize: 18,
+    fontSize: 16,
     color: '#1a1b1f'
-  },
-  itemMeta: {
-    color: '#6a6a72'
   },
   empty: {
     color: '#6f7077'
