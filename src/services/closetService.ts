@@ -39,3 +39,7 @@ export async function updateClosetCover(closetId: string, coverImagePath: string
   return data;
 }
 
+export async function deleteCloset(closetId: string) {
+  const { error } = await supabase.from('closets').delete().eq('id', closetId);
+  if (error) throw error;
+}

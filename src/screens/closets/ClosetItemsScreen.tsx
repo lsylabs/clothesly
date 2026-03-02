@@ -1,15 +1,20 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, Alert, Modal, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import ItemCollectionView from '../../components/ItemCollectionView';
+import AppButton from '../../components/ui/AppButton';
 import { useAuth } from '../../services/AuthContext';
+import { deleteCloset } from '../../services/closetService';
 import { getCachedSignedImageUrl, getCachedSignedImageUrlSync } from '../../services/imageCacheService';
-import { fetchWardrobeData, getWardrobeDataCache } from '../../services/wardrobeDataService';
+import { fetchWardrobeData, getWardrobeDataCache, refreshWardrobeData } from '../../services/wardrobeDataService';
 import type { Database } from '../../types/database';
 import type { AppStackParamList } from '../../types/navigation';
+import { withRetry } from '../../utils/retry';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'ClosetItems'>;
 type ItemRow = Database['public']['Tables']['clothing_items']['Row'];
@@ -29,6 +34,19 @@ export default function ClosetItemsScreen({ navigation, route }: Props) {
   const [errorText, setErrorText] = useState<string | null>(null);
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const [lastLoadedAt, setLastLoadedAt] = useState<number | null>(null);
+  const [isActionSheetVisible, setActionSheetVisible] = useState(false);
+  const [deletingCloset, setDeletingCloset] = useState(false);
+  const insets = useSafeAreaInsets();
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <Pressable hitSlop={8} onPress={() => setActionSheetVisible(true)} style={styles.headerAction}>
+          <Ionicons color="#232429" name="ellipsis-horizontal" size={22} />
+        </Pressable>
+      )
+    });
+  }, [navigation]);
 
   const applyData = useCallback((data: { items: ItemRow[]; mappings: MappingRow[]; loadedAt: number }) => {
     setItems(data.items);
@@ -133,31 +151,75 @@ export default function ClosetItemsScreen({ navigation, route }: Props) {
     };
   }, [closetItems]);
 
-  return (
-    <ScrollView
-      contentContainerStyle={styles.container}
-      refreshControl={<RefreshControl onRefresh={async () => {
-        setRefreshing(true);
-        await loadData({ blocking: false });
-        setRefreshing(false);
-      }} refreshing={refreshing} tintColor="#17181b" />}
-    >
-      {loading && !hasLoadedOnce ? (
-        <View style={styles.centered}>
-          <ActivityIndicator color="#17181b" />
-        </View>
-      ) : null}
-      {loading && hasLoadedOnce ? <Text style={styles.syncingText}>Syncing items...</Text> : null}
-      {errorText ? <Text style={styles.errorText}>{errorText}</Text> : null}
+  const handleDeleteCloset = useCallback(async () => {
+    if (deletingCloset) return;
+    setDeletingCloset(true);
+    setActionSheetVisible(false);
+    try {
+      await withRetry(() => deleteCloset(closetId));
+      if (userId) {
+        await refreshWardrobeData(userId).catch(() => undefined);
+      }
+      Alert.alert('Closet deleted', 'The closet was deleted.');
+      navigation.goBack();
+    } catch (error) {
+      Alert.alert('Delete failed', error instanceof Error ? error.message : 'Unknown error');
+    } finally {
+      setDeletingCloset(false);
+    }
+  }, [closetId, deletingCloset, navigation, userId]);
 
-      <ItemCollectionView
-        imageUrls={itemImageUrls}
-        items={closetItems}
-        onPressAdd={() => navigation.navigate('AddItem')}
-        onPressItem={(itemId) => navigation.navigate('ItemDetail', { itemId })}
-        title={`${closetName} (${closetItems.length})`}
-      />
-    </ScrollView>
+  return (
+    <>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        refreshControl={<RefreshControl onRefresh={async () => {
+          setRefreshing(true);
+          await loadData({ blocking: false });
+          setRefreshing(false);
+        }} refreshing={refreshing} tintColor="#17181b" />}
+      >
+        {loading && !hasLoadedOnce ? (
+          <View style={styles.centered}>
+            <ActivityIndicator color="#17181b" />
+          </View>
+        ) : null}
+        {loading && hasLoadedOnce ? <Text style={styles.syncingText}>Syncing items...</Text> : null}
+        {errorText ? <Text style={styles.errorText}>{errorText}</Text> : null}
+
+        <ItemCollectionView
+          imageUrls={itemImageUrls}
+          items={closetItems}
+          onPressAdd={() => navigation.navigate('AddItem')}
+          onPressItem={(itemId) => navigation.navigate('ItemDetail', { itemId })}
+          title={`${closetName} (${closetItems.length})`}
+        />
+      </ScrollView>
+
+      <Modal animationType="slide" transparent visible={isActionSheetVisible}>
+        <Pressable onPress={() => setActionSheetVisible(false)} style={styles.sheetBackdrop}>
+          <Pressable style={[styles.sheet, { paddingBottom: Math.max(insets.bottom + 12, 34) }]}>
+            <Text style={styles.sheetTitle}>Closet Actions</Text>
+            <AppButton
+              disabled={deletingCloset}
+              label={deletingCloset ? 'Deleting...' : 'Delete Closet'}
+              onPress={() =>
+                Alert.alert(
+                  'Delete closet?',
+                  'This will remove the closet and detach all items from it.',
+                  [
+                    { text: 'Cancel', style: 'cancel' },
+                    { text: 'Delete', style: 'destructive', onPress: () => void handleDeleteCloset() }
+                  ]
+                )
+              }
+              variant="danger"
+            />
+            <AppButton label="Cancel" onPress={() => setActionSheetVisible(false)} variant="secondary" />
+          </Pressable>
+        </Pressable>
+      </Modal>
+    </>
   );
 }
 
@@ -179,5 +241,28 @@ const styles = StyleSheet.create({
   errorText: {
     color: '#a04f4f',
     fontWeight: '600'
+  },
+  headerAction: {
+    paddingHorizontal: 4,
+    paddingVertical: 2
+  },
+  sheetBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    justifyContent: 'flex-end'
+  },
+  sheet: {
+    backgroundColor: '#ffffff',
+    paddingTop: 20,
+    paddingHorizontal: 18,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    gap: 10
+  },
+  sheetTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#17181b',
+    marginBottom: 6
   }
 });
