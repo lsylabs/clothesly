@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
@@ -92,7 +92,16 @@ export default function AddClosetScreen({ navigation }: Props) {
           variant="secondary"
         />
       </View>
-      <Text style={styles.fileText}>{coverImage ? `Selected: ${coverImage.uri.split('/').pop()}` : 'No cover selected'}</Text>
+      {coverImage ? (
+        <Image
+          resizeMode="cover"
+          source={{ uri: coverImage.uri }}
+          style={[
+            styles.coverPreview,
+            coverImage.width && coverImage.height ? { aspectRatio: coverImage.width / coverImage.height } : null
+          ]}
+        />
+      ) : null}
       {errorText ? <Text style={styles.errorText}>{errorText}</Text> : null}
 
       <AppButton label="Create Closet" loading={loading} loadingLabel="Creating..." onPress={handleSave} style={styles.primary} />
@@ -118,8 +127,11 @@ const styles = StyleSheet.create({
   secondary: {
     flex: 1
   },
-  fileText: {
-    color: '#676770'
+  coverPreview: {
+    width: '100%',
+    aspectRatio: 1,
+    borderRadius: 16,
+    backgroundColor: '#f4f5f7'
   },
   primary: {
     marginTop: 8

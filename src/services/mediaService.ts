@@ -6,6 +6,8 @@ export type LocalImage = {
   uri: string;
   mimeType: string;
   extension: string;
+  width?: number;
+  height?: number;
 };
 
 const extensionFromUri = (uri: string) => {
@@ -25,7 +27,9 @@ const mapAssetToLocalImage = (asset: ImagePicker.ImagePickerAsset): LocalImage =
   return {
     uri: asset.uri,
     extension,
-    mimeType: asset.mimeType ?? mimeFromExtension(extension)
+    mimeType: asset.mimeType ?? mimeFromExtension(extension),
+    width: asset.width,
+    height: asset.height
   };
 };
 
