@@ -1,0 +1,169 @@
+import { useState } from 'react';
+import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+
+import * as AuthSession from 'expo-auth-session';
+import * as WebBrowser from 'expo-web-browser';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+import { hasSupabaseEnv } from '../../config/env';
+import { supabase } from '../../services/supabase';
+import type { AuthStackParamList } from '../../types/navigation';
+
+WebBrowser.maybeCompleteAuthSession();
+
+type Props = NativeStackScreenProps<AuthStackParamList, 'SignIn'>;
+
+export default function SignInScreen({ navigation }: Props) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSignIn = async () => {
+    if (!email || !password) {
+      Alert.alert('Missing details', 'Please enter both email and password.');
+      return;
+    }
+
+    setLoading(true);
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    setLoading(false);
+
+    if (error) {
+      Alert.alert('Sign in failed', error.message);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    if (!hasSupabaseEnv) {
+      Alert.alert('Missing env', 'Set Supabase env vars before using OAuth.');
+      return;
+    }
+
+    const redirectTo = AuthSession.makeRedirectUri({ scheme: 'clothesly' });
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo,
+        skipBrowserRedirect: true
+      }
+    });
+
+    if (error) {
+      Alert.alert('Google sign in failed', error.message);
+      return;
+    }
+
+    if (!data?.url) {
+      Alert.alert('Google sign in failed', 'No OAuth URL was returned.');
+      return;
+    }
+
+    const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
+    if (result.type === 'success' && result.url) {
+      const tokenHash = result.url.match(/access_token=([^&]+)/)?.[1];
+      const refreshToken = result.url.match(/refresh_token=([^&]+)/)?.[1];
+      if (tokenHash && refreshToken) {
+        await supabase.auth.setSession({
+          access_token: decodeURIComponent(tokenHash),
+          refresh_token: decodeURIComponent(refreshToken)
+        });
+      }
+    }
+  };
+
+  return (
+    <SafeAreaView edges={['top', 'bottom']} style={styles.container}>
+      <Text style={styles.title}>Clothesly</Text>
+      <Text style={styles.subtitle}>Sign in to your wardrobe</Text>
+
+      <TextInput
+        autoCapitalize="none"
+        keyboardType="email-address"
+        onChangeText={setEmail}
+        placeholder="Email"
+        style={styles.input}
+        value={email}
+      />
+      <TextInput
+        onChangeText={setPassword}
+        placeholder="Password"
+        secureTextEntry
+        style={styles.input}
+        value={password}
+      />
+
+      <Pressable onPress={handleSignIn} style={[styles.button, loading && styles.disabled]}>
+        <Text style={styles.buttonText}>{loading ? 'Signing in...' : 'Sign In'}</Text>
+      </Pressable>
+
+      <Pressable onPress={handleGoogleSignIn} style={styles.secondaryButton}>
+        <Text style={styles.secondaryButtonText}>Continue with Google</Text>
+      </Pressable>
+
+      <Pressable onPress={() => navigation.navigate('SignUp')}>
+        <Text style={styles.link}>New here? Create an account</Text>
+      </Pressable>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    paddingHorizontal: 24,
+    justifyContent: 'center',
+    backgroundColor: '#f5f1e8'
+  },
+  title: {
+    fontSize: 36,
+    fontWeight: '700',
+    color: '#1d1d1d',
+    marginBottom: 6
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#3e3e3e',
+    marginBottom: 24
+  },
+  input: {
+    backgroundColor: '#ffffff',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#d6d0c5'
+  },
+  button: {
+    backgroundColor: '#1f4d3d',
+    borderRadius: 10,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginTop: 4
+  },
+  disabled: {
+    opacity: 0.6
+  },
+  buttonText: {
+    color: '#ffffff',
+    fontWeight: '600'
+  },
+  secondaryButton: {
+    borderRadius: 10,
+    paddingVertical: 14,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#1f4d3d',
+    marginTop: 12
+  },
+  secondaryButtonText: {
+    color: '#1f4d3d',
+    fontWeight: '600'
+  },
+  link: {
+    marginTop: 18,
+    color: '#3f6659',
+    textAlign: 'center'
+  }
+});
