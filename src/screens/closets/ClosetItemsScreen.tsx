@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Alert, Modal, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ActivityIndicator, Alert, Animated, Easing, Modal, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -7,7 +7,6 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import ItemCollectionView from '../../components/ItemCollectionView';
-import AppButton from '../../components/ui/AppButton';
 import { useAuth } from '../../services/AuthContext';
 import { deleteCloset } from '../../services/closetService';
 import { getCachedSignedImageUrl, getCachedSignedImageUrlSync } from '../../services/imageCacheService';
@@ -37,6 +36,28 @@ export default function ClosetItemsScreen({ navigation, route }: Props) {
   const [isActionSheetVisible, setActionSheetVisible] = useState(false);
   const [deletingCloset, setDeletingCloset] = useState(false);
   const insets = useSafeAreaInsets();
+  const backdropOpacity = useRef(new Animated.Value(0)).current;
+  const sheetTranslateY = useRef(new Animated.Value(22)).current;
+
+  useEffect(() => {
+    if (!isActionSheetVisible) return;
+    backdropOpacity.setValue(0);
+    sheetTranslateY.setValue(22);
+    Animated.parallel([
+      Animated.timing(backdropOpacity, {
+        toValue: 1,
+        duration: 110,
+        easing: Easing.out(Easing.quad),
+        useNativeDriver: true
+      }),
+      Animated.timing(sheetTranslateY, {
+        toValue: 0,
+        duration: 180,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true
+      })
+    ]).start();
+  }, [backdropOpacity, isActionSheetVisible, sheetTranslateY]);
 
   const applyData = useCallback((data: { items: ItemRow[]; mappings: MappingRow[]; loadedAt: number }) => {
     setItems(data.items);
@@ -198,13 +219,54 @@ export default function ClosetItemsScreen({ navigation, route }: Props) {
         />
       </ScrollView>
 
-      <Modal animationType="slide" transparent visible={isActionSheetVisible}>
-        <Pressable onPress={() => setActionSheetVisible(false)} style={styles.sheetBackdrop}>
-          <Pressable style={[styles.sheet, { paddingBottom: Math.max(insets.bottom + 12, 34) }]}>
-            <Text style={styles.sheetTitle}>Closet Actions</Text>
-            <AppButton
+      <Modal animationType="none" transparent visible={isActionSheetVisible}>
+        <Animated.View style={[styles.sheetBackdrop, { opacity: backdropOpacity }]}>
+          <Pressable onPress={() => setActionSheetVisible(false)} style={StyleSheet.absoluteFillObject} />
+          <Animated.View
+            style={[
+              styles.sheet,
+              { paddingBottom: Math.max(insets.bottom + 12, 34) },
+              { transform: [{ translateY: sheetTranslateY }] }
+            ]}
+          >
+            <View style={styles.sheetHeader}>
+              <Text style={styles.sheetTitle}>Closet Actions</Text>
+              <Pressable hitSlop={8} onPress={() => setActionSheetVisible(false)} style={styles.sheetCloseButton}>
+                <Ionicons color="#4f5058" name="close-outline" size={22} />
+              </Pressable>
+            </View>
+            <Pressable
+              onPress={() => {
+                setActionSheetVisible(false);
+                Alert.alert('Coming soon', 'Edit Closet settings will be available soon.');
+              }}
+              style={styles.sheetAction}
+            >
+              <Ionicons color="#1f2024" name="pencil-outline" size={20} />
+              <Text style={styles.sheetActionText}>Edit Closet</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => {
+                setActionSheetVisible(false);
+                Alert.alert('Coming soon', 'Custom item ordering will be available soon.');
+              }}
+              style={styles.sheetAction}
+            >
+              <Ionicons color="#1f2024" name="swap-vertical-outline" size={20} />
+              <Text style={styles.sheetActionText}>Edit Item Order</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => {
+                setActionSheetVisible(false);
+                Alert.alert('Coming soon', 'Selection tools will be available soon.');
+              }}
+              style={styles.sheetAction}
+            >
+              <Ionicons color="#1f2024" name="checkmark-circle-outline" size={20} />
+              <Text style={styles.sheetActionText}>Select</Text>
+            </Pressable>
+            <Pressable
               disabled={deletingCloset}
-              label={deletingCloset ? 'Deleting...' : 'Delete Closet'}
               onPress={() =>
                 Alert.alert(
                   'Delete closet?',
@@ -215,11 +277,13 @@ export default function ClosetItemsScreen({ navigation, route }: Props) {
                   ]
                 )
               }
-              variant="danger"
-            />
-            <AppButton label="Cancel" onPress={() => setActionSheetVisible(false)} variant="secondary" />
-          </Pressable>
-        </Pressable>
+              style={[styles.sheetAction, deletingCloset && styles.disabled]}
+            >
+              <Ionicons color="#b43d3d" name="trash-outline" size={20} />
+              <Text style={styles.sheetActionDangerText}>{deletingCloset ? 'Deleting...' : 'Delete Closet'}</Text>
+            </Pressable>
+          </Animated.View>
+        </Animated.View>
       </Modal>
     </>
   );
@@ -266,7 +330,7 @@ const styles = StyleSheet.create({
   },
   sheetBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    backgroundColor: 'rgba(0, 0, 0, 0.38)',
     justifyContent: 'flex-end'
   },
   sheet: {
@@ -280,7 +344,36 @@ const styles = StyleSheet.create({
   sheetTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#17181b',
+    color: '#17181b'
+  },
+  sheetHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: 6
+  },
+  sheetCloseButton: {
+    paddingHorizontal: 2,
+    paddingVertical: 2
+  },
+  sheetAction: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 2
+  },
+  sheetActionText: {
+    color: '#1f2024',
+    fontSize: 16,
+    fontWeight: '600'
+  },
+  sheetActionDangerText: {
+    color: '#b43d3d',
+    fontSize: 16,
+    fontWeight: '600'
+  },
+  disabled: {
+    opacity: 0.6
   }
 });
