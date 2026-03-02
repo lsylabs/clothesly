@@ -13,6 +13,7 @@ export type AppStackParamList = {
   AddItem: undefined;
   AddCloset: undefined;
   ItemDetail: { itemId: string };
+  ClosetItems: { closetId: string; closetName: string };
 };
 
 export type AppTabsParamList = {

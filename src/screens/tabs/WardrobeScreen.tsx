@@ -4,6 +4,7 @@ import { ActivityIndicator, Image, Pressable, RefreshControl, ScrollView, StyleS
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
+import ItemCollectionView from '../../components/ItemCollectionView';
 import { useAuth } from '../../services/AuthContext';
 import { getCachedSignedImageUrl, getCachedSignedImageUrlSync } from '../../services/imageCacheService';
 import { fetchWardrobeData, getWardrobeDataCache } from '../../services/wardrobeDataService';
@@ -26,7 +27,6 @@ export default function WardrobeScreen() {
   const [closets, setClosets] = useState<ClosetRow[]>([]);
   const [items, setItems] = useState<ItemRow[]>([]);
   const [mappings, setMappings] = useState<MappingRow[]>([]);
-  const [selectedClosetId, setSelectedClosetId] = useState<string | null>(null);
   const [errorText, setErrorText] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
@@ -39,16 +39,10 @@ export default function WardrobeScreen() {
       setClosets(data.closets);
       setItems(data.items);
       setMappings(data.mappings);
-      if (data.closets.length && !selectedClosetId) {
-        setSelectedClosetId(data.closets[0].id);
-      }
-      if (!data.closets.length) {
-        setSelectedClosetId(null);
-      }
       setLastLoadedAt(data.loadedAt);
       setHasLoadedOnce(true);
     },
-    [selectedClosetId]
+    []
   );
 
   const loadData = useCallback(async (options?: { blocking?: boolean }) => {
@@ -60,7 +54,6 @@ export default function WardrobeScreen() {
         setClosets([]);
         setItems([]);
         setMappings([]);
-        setSelectedClosetId(null);
         setLastLoadedAt(null);
         setHasLoadedOnce(true);
         return;
@@ -194,12 +187,6 @@ export default function WardrobeScreen() {
     }, [hasLoadedOnce, hydrateFromCache, lastLoadedAt, loadData])
   );
 
-  const selectedClosetItems = useMemo(() => {
-    if (!selectedClosetId) return [];
-    const itemIds = new Set(mappings.filter((entry) => entry.closet_id === selectedClosetId).map((entry) => entry.item_id));
-    return items.filter((item) => itemIds.has(item.id));
-  }, [items, mappings, selectedClosetId]);
-
   const closetItemIdsByCloset = useMemo(() => {
     const rank = new Map(items.map((item, index) => [item.id, index]));
     const grouped: Record<string, string[]> = {};
@@ -254,17 +241,13 @@ export default function WardrobeScreen() {
 
         {viewMode === 'all' ? (
           <>
-            <Text style={styles.sectionTitle}>All Items ({items.length})</Text>
-            {items.length ? (
-              <ItemGrid
-                imageUrls={itemImageUrls}
-                items={items}
-                onPressItem={(itemId) => navigation.navigate('ItemDetail', { itemId })}
-                onPressAdd={() => navigation.navigate('AddItem')}
-              />
-            ) : (
-              <ItemGrid imageUrls={itemImageUrls} items={[]} onPressAdd={() => navigation.navigate('AddItem')} onPressItem={() => undefined} />
-            )}
+            <ItemCollectionView
+              imageUrls={itemImageUrls}
+              items={items}
+              onPressAdd={() => navigation.navigate('AddItem')}
+              onPressItem={(itemId) => navigation.navigate('ItemDetail', { itemId })}
+              title={`All Items (${items.length})`}
+            />
           </>
         ) : null}
 
@@ -274,32 +257,15 @@ export default function WardrobeScreen() {
             {closets.length ? (
               <>
                 <View style={styles.closetGrid}>
-                  <ClosetGrid
-                    closetCoverUrls={closetCoverUrls}
-                    closetItemIdsByCloset={closetItemIdsByCloset}
-                    closets={closets}
-                    itemImageUrls={itemImageUrls}
-                    onPressAdd={() => navigation.navigate('AddCloset')}
-                    onPressCloset={(closetId) => setSelectedClosetId(closetId)}
-                    selectedClosetId={selectedClosetId}
-                  />
-                </View>
-                <Text style={styles.sectionTitle}>Items in Selected Closet ({selectedClosetItems.length})</Text>
-                {selectedClosetItems.length ? (
-                  <ItemGrid
-                    imageUrls={itemImageUrls}
-                    items={selectedClosetItems}
-                    onPressItem={(itemId) => navigation.navigate('ItemDetail', { itemId })}
-                    onPressAdd={() => navigation.navigate('AddItem')}
-                  />
-                ) : (
-                  <ItemGrid
-                    imageUrls={itemImageUrls}
-                    items={[]}
-                    onPressAdd={() => navigation.navigate('AddItem')}
-                    onPressItem={() => undefined}
-                  />
-                )}
+                <ClosetGrid
+                  closetCoverUrls={closetCoverUrls}
+                  closetItemIdsByCloset={closetItemIdsByCloset}
+                  closets={closets}
+                  itemImageUrls={itemImageUrls}
+                  onPressAdd={() => navigation.navigate('AddCloset')}
+                  onPressCloset={(closetId, closetName) => navigation.navigate('ClosetItems', { closetId, closetName })}
+                />
+              </View>
               </>
             ) : (
               <View style={styles.closetGrid}>
@@ -310,7 +276,6 @@ export default function WardrobeScreen() {
                   itemImageUrls={itemImageUrls}
                   onPressAdd={() => navigation.navigate('AddCloset')}
                   onPressCloset={() => undefined}
-                  selectedClosetId={selectedClosetId}
                 />
               </View>
             )}
@@ -323,7 +288,6 @@ export default function WardrobeScreen() {
 
 function ClosetGrid({
   closets,
-  selectedClosetId,
   onPressCloset,
   onPressAdd,
   closetCoverUrls,
@@ -331,8 +295,7 @@ function ClosetGrid({
   itemImageUrls
 }: {
   closets: ClosetRow[];
-  selectedClosetId: string | null;
-  onPressCloset: (closetId: string) => void;
+  onPressCloset: (closetId: string, closetName: string) => void;
   onPressAdd: () => void;
   closetCoverUrls: Record<string, string>;
   closetItemIdsByCloset: Record<string, string[]>;
@@ -341,18 +304,17 @@ function ClosetGrid({
   return (
     <>
       {closets.map((closet) => {
-        const selected = selectedClosetId === closet.id;
         const coverUrl = closetCoverUrls[closet.id] ?? '';
         const previewIds = (closetItemIdsByCloset[closet.id] ?? []).slice(0, 4);
 
         return (
-          <Pressable key={closet.id} onPress={() => onPressCloset(closet.id)} style={styles.closetTile}>
+          <Pressable key={closet.id} onPress={() => onPressCloset(closet.id, closet.name)} style={styles.closetTile}>
             {coverUrl ? (
-              <Image resizeMode="cover" source={{ uri: coverUrl }} style={[styles.closetImage, selected && styles.closetImageSelected]} />
+              <Image resizeMode="cover" source={{ uri: coverUrl }} style={styles.closetImage} />
             ) : (
-              <ClosetFallbackCollage itemIds={previewIds} itemImageUrls={itemImageUrls} selected={selected} />
+              <ClosetFallbackCollage itemIds={previewIds} itemImageUrls={itemImageUrls} />
             )}
-            <Text numberOfLines={1} style={[styles.closetName, selected && styles.closetNameSelected]}>
+            <Text numberOfLines={1} style={styles.closetName}>
               {closet.name}
             </Text>
           </Pressable>
@@ -373,12 +335,10 @@ function ClosetGrid({
 
 function ClosetFallbackCollage({
   itemIds,
-  itemImageUrls,
-  selected
+  itemImageUrls
 }: {
   itemIds: string[];
   itemImageUrls: Record<string, string>;
-  selected: boolean;
 }) {
   const tl = itemIds[0] ? itemImageUrls[itemIds[0]] : '';
   const bl = itemIds[1] ? itemImageUrls[itemIds[1]] : '';
@@ -386,7 +346,7 @@ function ClosetFallbackCollage({
   const br = itemIds[3] ? itemImageUrls[itemIds[3]] : '';
 
   return (
-    <View style={[styles.closetImage, styles.collageWrap, selected && styles.closetImageSelected]}>
+    <View style={[styles.closetImage, styles.collageWrap]}>
       <View style={styles.collageColumn}>
         <CollageCell url={tl} />
         <CollageCell url={bl} />
@@ -403,45 +363,6 @@ function CollageCell({ url }: { url: string }) {
   return (
     <View style={styles.collageCell}>
       {url ? <Image resizeMode="cover" source={{ uri: url }} style={styles.collageCellImage} /> : null}
-    </View>
-  );
-}
-
-function ItemGrid({
-  items,
-  imageUrls,
-  onPressItem,
-  onPressAdd
-}: {
-  items: ItemRow[];
-  imageUrls: Record<string, string>;
-  onPressItem: (itemId: string) => void;
-  onPressAdd: () => void;
-}) {
-  return (
-    <View style={styles.itemGrid}>
-      {items.map((item) => (
-        <Pressable key={item.id} onPress={() => onPressItem(item.id)} style={styles.itemTile}>
-          {imageUrls[item.id] ? (
-            <Image resizeMode="cover" source={{ uri: imageUrls[item.id] }} style={styles.itemImage} />
-          ) : (
-            <View style={[styles.itemImage, styles.itemImagePlaceholder]}>
-              <Text style={styles.itemImagePlaceholderText}>No image</Text>
-            </View>
-          )}
-          <Text numberOfLines={1} style={styles.itemTitle}>
-            {item.name}
-          </Text>
-        </Pressable>
-      ))}
-      <Pressable onPress={onPressAdd} style={[styles.itemTile, styles.addTile]}>
-        <View style={[styles.itemImage, styles.itemImagePlaceholder]}>
-          <Text style={styles.addTileIcon}>+</Text>
-        </View>
-        <Text numberOfLines={1} style={styles.addTileLabel}>
-          Add Item
-        </Text>
-      </Pressable>
     </View>
   );
 }
@@ -522,16 +443,10 @@ const styles = StyleSheet.create({
     borderColor: '#e6e8ec',
     backgroundColor: '#f6f7f9'
   },
-  closetImageSelected: {
-    borderColor: '#8d9099'
-  },
   closetName: {
     fontWeight: '700',
     color: '#1a1b1f',
     fontSize: 16
-  },
-  closetNameSelected: {
-    color: '#111216'
   },
   collageWrap: {
     flexDirection: 'row',
@@ -552,29 +467,6 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%'
   },
-  itemGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12
-  },
-  itemTile: {
-    width: '48%',
-    gap: 8
-  },
-  itemImage: {
-    width: '100%',
-    aspectRatio: 1,
-    borderRadius: 14,
-    backgroundColor: '#f6f7f9'
-  },
-  itemImagePlaceholder: {
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  itemImagePlaceholderText: {
-    color: '#7a7b82',
-    fontWeight: '500'
-  },
   addTile: {
     borderStyle: 'dashed',
     borderColor: '#d9dce3',
@@ -592,11 +484,6 @@ const styles = StyleSheet.create({
     marginTop: 6,
     color: '#5b5c64',
     fontWeight: '600'
-  },
-  itemTitle: {
-    fontWeight: '700',
-    fontSize: 16,
-    color: '#1a1b1f'
   },
   empty: {
     color: '#6f7077'
