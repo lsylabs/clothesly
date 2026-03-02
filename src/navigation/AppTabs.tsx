@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { useNavigation } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import AddActionSheet from '../components/AddActionSheet';
@@ -14,11 +15,17 @@ import WardrobeScreen from '../screens/tabs/WardrobeScreen';
 import type { AppStackParamList, AppTabsParamList } from '../types/navigation';
 
 const Tab = createBottomTabNavigator<AppTabsParamList>();
+const TAB_ICON_BY_ROUTE = {
+  Home: 'home-outline',
+  Wardrobe: 'shirt-outline',
+  Outfits: 'sparkles-outline',
+  Profile: 'person-outline'
+} as const;
 
 function CenterAddButton({ onPress, bottomInset }: { onPress: () => void; bottomInset: number }) {
   return (
     <Pressable onPress={onPress} style={[styles.centerButton, { marginBottom: bottomInset > 0 ? bottomInset + 2 : 14 }]}>
-      <Text style={styles.centerButtonText}>+</Text>
+      <Ionicons color="#ffffff" name="add-outline" size={24} />
     </Pressable>
   );
 }
@@ -35,10 +42,15 @@ export default function AppTabs() {
           paddingTop: insets.top,
           backgroundColor: '#ffffff'
         }}
-        screenOptions={{
+        screenOptions={({ route }) => ({
           headerShown: false,
           tabBarActiveTintColor: '#17181b',
           tabBarInactiveTintColor: '#88878c',
+          tabBarIcon: ({ color, size }) => {
+            if (route.name === 'Add') return null;
+            const iconName = TAB_ICON_BY_ROUTE[route.name as keyof typeof TAB_ICON_BY_ROUTE] ?? 'ellipse-outline';
+            return <Ionicons color={color} name={iconName} size={size} />;
+          },
           tabBarLabelStyle: {
             fontSize: 12,
             fontWeight: '600',
@@ -61,7 +73,7 @@ export default function AppTabs() {
             shadowRadius: 18,
             elevation: 10
           }
-        }}
+        })}
       >
         <Tab.Screen component={HomeScreen} name="Home" />
         <Tab.Screen component={WardrobeScreen} name="Wardrobe" />
@@ -113,11 +125,5 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 5,
     elevation: 3
-  },
-  centerButtonText: {
-    fontSize: 24,
-    lineHeight: 24,
-    color: '#ffffff',
-    fontWeight: '500'
   }
 });
