@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 import { useAuth } from '../../services/AuthContext';
 import { listClosets } from '../../services/closetService';
@@ -161,6 +162,7 @@ export default function AddItemScreen({ navigation }: Props) {
   const [selectedClosetIds, setSelectedClosetIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [errorText, setErrorText] = useState<string | null>(null);
+  const allowExitRef = useRef(false);
 
   useEffect(() => {
     let active = true;
@@ -253,6 +255,87 @@ export default function AddItemScreen({ navigation }: Props) {
     }
   }, [customFieldsText]);
 
+  const hasUnsavedChanges = useMemo(
+    () =>
+      Boolean(
+        name.trim() ||
+          selectedBrands.length ||
+          selectedClothingTypes.length ||
+          selectedColors.length ||
+          priceAmount.trim() ||
+          (priceCurrency.trim() && priceCurrency.trim().toUpperCase() !== 'USD') ||
+          selectedSeasons.length ||
+          selectedMaterials.length ||
+          customFieldsText.trim() !== '{}' ||
+          primaryImage ||
+          extraImages.length ||
+          selectedClosetIds.length
+      ),
+    [
+      customFieldsText,
+      extraImages.length,
+      name,
+      priceAmount,
+      priceCurrency,
+      primaryImage,
+      selectedBrands.length,
+      selectedClosetIds.length,
+      selectedClothingTypes.length,
+      selectedColors.length,
+      selectedMaterials.length,
+      selectedSeasons.length
+    ]
+  );
+
+  const confirmDiscard = useCallback(
+    (onDiscard: () => void) => {
+      if (!hasUnsavedChanges) {
+        onDiscard();
+        return;
+      }
+      Alert.alert('Discard this item?', 'Your unsaved changes will be lost.', [
+        { text: 'Keep Editing', style: 'cancel' },
+        { text: 'Discard', style: 'destructive', onPress: onDiscard }
+      ]);
+    },
+    [hasUnsavedChanges]
+  );
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerLeft: () => (
+        <Pressable
+          hitSlop={8}
+          onPress={() =>
+            confirmDiscard(() => {
+              allowExitRef.current = true;
+              navigation.goBack();
+            })
+          }
+          style={styles.headerCloseTap}
+        >
+          <Ionicons color="#232429" name="close" size={22} />
+        </Pressable>
+      )
+    });
+  }, [confirmDiscard, navigation]);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('beforeRemove', (event) => {
+      if (allowExitRef.current || !hasUnsavedChanges) {
+        return;
+      }
+
+      event.preventDefault();
+      confirmDiscard(() => {
+        allowExitRef.current = true;
+        navigation.dispatch(event.data.action);
+      });
+    });
+
+    return unsubscribe;
+  }, [confirmDiscard, hasUnsavedChanges, navigation]);
+
   const handleSave = async () => {
     setErrorText(null);
 
@@ -338,6 +421,7 @@ export default function AddItemScreen({ navigation }: Props) {
       await refreshWardrobeData(userId).catch(() => undefined);
 
       Alert.alert('Item added', 'Your wardrobe item has been saved.');
+      allowExitRef.current = true;
       navigation.goBack();
     } catch (error) {
       if (createdItemId) {
@@ -679,5 +763,10 @@ const styles = StyleSheet.create({
   errorText: {
     color: '#a04f4f',
     fontWeight: '600'
-  }
+  },
+  headerCloseTap: {
+    paddingHorizontal: 4,
+    paddingVertical: 2
+  },
+  
 });
