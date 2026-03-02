@@ -145,99 +145,103 @@ export default function WardrobeScreen() {
   }, [items, mappings, selectedClosetId]);
 
   return (
-    <ScrollView
-      contentContainerStyle={styles.container}
-      refreshControl={<RefreshControl onRefresh={handleRefresh} refreshing={refreshing} tintColor="#17181b" />}
-    >
-      <Text style={styles.title}>Wardrobe</Text>
+    <View style={styles.screen}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Wardrobe</Text>
 
-      <View style={styles.actions}>
-        <Pressable onPress={() => navigation.navigate('AddItem')} style={styles.primaryAction}>
-          <Text style={styles.primaryActionText}>Add Item</Text>
-        </Pressable>
-        <Pressable onPress={() => navigation.navigate('AddCloset')} style={styles.secondaryAction}>
-          <Text style={styles.secondaryActionText}>Create Closet</Text>
-        </Pressable>
-      </View>
-
-      <View style={styles.segment}>
-        <Pressable onPress={() => setViewMode('closets')} style={[styles.segmentButton, viewMode === 'closets' && styles.segmentButtonActive]}>
-          <Text style={[styles.segmentText, viewMode === 'closets' && styles.segmentTextActive]}>By Closet</Text>
-        </Pressable>
-        <Pressable onPress={() => setViewMode('all')} style={[styles.segmentButton, viewMode === 'all' && styles.segmentButtonActive]}>
-          <Text style={[styles.segmentText, viewMode === 'all' && styles.segmentTextActive]}>All Items</Text>
-        </Pressable>
-      </View>
-
-      {loading && !hasLoadedOnce ? (
-        <View style={styles.centered}>
-          <ActivityIndicator color="#17181b" />
-        </View>
-      ) : null}
-      {loading && hasLoadedOnce ? <Text style={styles.syncingText}>Syncing wardrobe...</Text> : null}
-
-      {errorText ? (
-        <View style={styles.errorCard}>
-          <Text style={styles.errorText}>{errorText}</Text>
-          <Pressable onPress={() => void loadData({ blocking: !hasLoadedOnce })} style={styles.retryButton}>
-            <Text style={styles.retryButtonText}>Retry</Text>
+        <View style={styles.actions}>
+          <Pressable onPress={() => navigation.navigate('AddItem')} style={styles.primaryAction}>
+            <Text style={styles.primaryActionText}>Add Item</Text>
+          </Pressable>
+          <Pressable onPress={() => navigation.navigate('AddCloset')} style={styles.secondaryAction}>
+            <Text style={styles.secondaryActionText}>Create Closet</Text>
           </Pressable>
         </View>
-      ) : null}
 
-      {viewMode === 'all' ? (
-        <>
-          <Text style={styles.sectionTitle}>All Items ({items.length})</Text>
-          {items.length ? (
-            <ItemGrid
-              imageUrls={itemImageUrls}
-              items={items}
-              onPressItem={(itemId) => navigation.navigate('ItemDetail', { itemId })}
-            />
-          ) : (
-            <Text style={styles.empty}>No items yet.</Text>
-          )}
-        </>
-      ) : null}
+        <View style={styles.segment}>
+          <Pressable onPress={() => setViewMode('closets')} style={[styles.segmentButton, viewMode === 'closets' && styles.segmentButtonActive]}>
+            <Text style={[styles.segmentText, viewMode === 'closets' && styles.segmentTextActive]}>By Closet</Text>
+          </Pressable>
+          <Pressable onPress={() => setViewMode('all')} style={[styles.segmentButton, viewMode === 'all' && styles.segmentButtonActive]}>
+            <Text style={[styles.segmentText, viewMode === 'all' && styles.segmentTextActive]}>All Items</Text>
+          </Pressable>
+        </View>
+      </View>
 
-      {viewMode === 'closets' ? (
-        <>
-          <Text style={styles.sectionTitle}>Closets ({closets.length})</Text>
-          {closets.length ? (
-            <>
-              <View style={styles.closetGrid}>
-                {closets.map((closet) => {
-                  const count = mappings.filter((entry) => entry.closet_id === closet.id).length;
-                  const selected = selectedClosetId === closet.id;
-                  return (
-                    <Pressable
-                      key={closet.id}
-                      onPress={() => setSelectedClosetId(closet.id)}
-                      style={[styles.closetCard, selected && styles.closetCardSelected]}
-                    >
-                      <Text style={[styles.closetName, selected && styles.closetNameSelected]}>{closet.name}</Text>
-                      <Text style={[styles.closetCount, selected && styles.closetNameSelected]}>{count} item(s)</Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
-              <Text style={styles.sectionTitle}>Items in Selected Closet ({selectedClosetItems.length})</Text>
-              {selectedClosetItems.length ? (
-                <ItemGrid
-                  imageUrls={itemImageUrls}
-                  items={selectedClosetItems}
-                  onPressItem={(itemId) => navigation.navigate('ItemDetail', { itemId })}
-                />
-              ) : (
-                <Text style={styles.empty}>No items in this closet yet.</Text>
-              )}
-            </>
-          ) : (
-            <Text style={styles.empty}>No closets yet. Create your first closet.</Text>
-          )}
-        </>
-      ) : null}
-    </ScrollView>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        refreshControl={<RefreshControl onRefresh={handleRefresh} refreshing={refreshing} tintColor="#17181b" />}
+      >
+        {loading && !hasLoadedOnce ? (
+          <View style={styles.centered}>
+            <ActivityIndicator color="#17181b" />
+          </View>
+        ) : null}
+        {loading && hasLoadedOnce ? <Text style={styles.syncingText}>Syncing wardrobe...</Text> : null}
+
+        {errorText ? (
+          <View style={styles.errorCard}>
+            <Text style={styles.errorText}>{errorText}</Text>
+            <Pressable onPress={() => void loadData({ blocking: !hasLoadedOnce })} style={styles.retryButton}>
+              <Text style={styles.retryButtonText}>Retry</Text>
+            </Pressable>
+          </View>
+        ) : null}
+
+        {viewMode === 'all' ? (
+          <>
+            <Text style={styles.sectionTitle}>All Items ({items.length})</Text>
+            {items.length ? (
+              <ItemGrid
+                imageUrls={itemImageUrls}
+                items={items}
+                onPressItem={(itemId) => navigation.navigate('ItemDetail', { itemId })}
+              />
+            ) : (
+              <Text style={styles.empty}>No items yet.</Text>
+            )}
+          </>
+        ) : null}
+
+        {viewMode === 'closets' ? (
+          <>
+            <Text style={styles.sectionTitle}>Closets ({closets.length})</Text>
+            {closets.length ? (
+              <>
+                <View style={styles.closetGrid}>
+                  {closets.map((closet) => {
+                    const count = mappings.filter((entry) => entry.closet_id === closet.id).length;
+                    const selected = selectedClosetId === closet.id;
+                    return (
+                      <Pressable
+                        key={closet.id}
+                        onPress={() => setSelectedClosetId(closet.id)}
+                        style={[styles.closetCard, selected && styles.closetCardSelected]}
+                      >
+                        <Text style={[styles.closetName, selected && styles.closetNameSelected]}>{closet.name}</Text>
+                        <Text style={[styles.closetCount, selected && styles.closetNameSelected]}>{count} item(s)</Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+                <Text style={styles.sectionTitle}>Items in Selected Closet ({selectedClosetItems.length})</Text>
+                {selectedClosetItems.length ? (
+                  <ItemGrid
+                    imageUrls={itemImageUrls}
+                    items={selectedClosetItems}
+                    onPressItem={(itemId) => navigation.navigate('ItemDetail', { itemId })}
+                  />
+                ) : (
+                  <Text style={styles.empty}>No items in this closet yet.</Text>
+                )}
+              </>
+            ) : (
+              <Text style={styles.empty}>No closets yet. Create your first closet.</Text>
+            )}
+          </>
+        ) : null}
+      </ScrollView>
+    </View>
   );
 }
 
@@ -271,6 +275,16 @@ function ItemGrid({
 }
 
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: '#ecebed'
+  },
+  header: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 10,
+    gap: 12
+  },
   container: {
     backgroundColor: '#ecebed',
     padding: 16,
