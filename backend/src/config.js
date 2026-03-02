@@ -10,8 +10,12 @@ dotenv.config({ path: path.resolve(__dirname, '../.env') });
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 const supabaseUrl = process.env.SUPABASE_URL ?? process.env.EXPO_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.SUPABASE_ANON_KEY ?? process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 
-const required = [{ key: 'SUPABASE_URL', value: supabaseUrl }];
+const required = [
+  { key: 'SUPABASE_URL', value: supabaseUrl },
+  { key: 'SUPABASE_ANON_KEY', value: supabaseAnonKey }
+];
 
 for (const requirement of required) {
   if (!requirement.value) {
@@ -22,6 +26,7 @@ for (const requirement of required) {
 export const config = {
   port: Number(process.env.PORT ?? 8787),
   supabaseUrl,
+  supabaseAnonKey,
   supabaseJwtAudience: process.env.SUPABASE_JWT_AUDIENCE ?? 'authenticated',
   allowedOrigins: process.env.ALLOWED_ORIGINS ?? '*'
 };

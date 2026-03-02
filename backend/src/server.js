@@ -6,6 +6,7 @@ import morgan from 'morgan';
 import { config } from './config.js';
 import healthRouter from './routes/health.js';
 import internalRouter from './routes/internal.js';
+import itemsRouter from './routes/items.js';
 import uploadsRouter from './routes/uploads.js';
 
 const app = express();
@@ -23,6 +24,7 @@ app.use(morgan('dev'));
 app.use(healthRouter);
 app.use(uploadsRouter);
 app.use(internalRouter);
+app.use(itemsRouter);
 
 app.use((req, res) => {
   res.status(404).json({ error: 'Not found', path: req.path });
@@ -37,4 +39,3 @@ app.listen(config.port, () => {
   // eslint-disable-next-line no-console
   console.log(`Clothesly BFF listening on http://localhost:${config.port}`);
 });
-

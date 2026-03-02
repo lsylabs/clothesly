@@ -6,7 +6,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useAuth } from '../../services/AuthContext';
 import { listClosets } from '../../services/closetService';
 import { createItemMetadataOption, listItemMetadataOptions, type ItemMetadataCategory } from '../../services/itemMetadataOptionService';
-import { addExtraImages, assignItemToClosets, createItem, deleteItem, updatePrimaryImagePath } from '../../services/itemService';
+import { createItemViaBackend, deleteItem, deleteItemViaBackend, finalizeItemViaBackend } from '../../services/itemService';
 import type { LocalImage } from '../../services/mediaService';
 import { pickImageFromCamera, pickImageFromLibrary, uploadImage } from '../../services/mediaService';
 import { buildItemExtraImagePath, buildItemPrimaryImagePath } from '../../services/storagePaths';
@@ -142,6 +142,7 @@ function OptionSelector({ label, options, selected, onToggle, onAddCustomOption,
 export default function AddItemScreen({ navigation }: Props) {
   const { session } = useAuth();
   const userId = session?.user.id;
+  const accessToken = session?.access_token;
 
   const [name, setName] = useState('');
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
@@ -258,6 +259,10 @@ export default function AddItemScreen({ navigation }: Props) {
       setErrorText('You need to sign in again before adding an item.');
       return;
     }
+    if (!accessToken) {
+      setErrorText('You need to sign in again before adding an item.');
+      return;
+    }
 
     const nameValidation = validateItemName(name);
     if (!nameValidation.valid) {
@@ -292,10 +297,9 @@ export default function AddItemScreen({ navigation }: Props) {
     let createdItemId: string | null = null;
     try {
       const created = await withRetry(() =>
-        createItem({
-          userId,
+        createItemViaBackend({
+          accessToken,
           name,
-          primaryImagePath: 'pending',
           brand: selectedBrands.join(', '),
           clothingType: selectedClothingTypes.join(', '),
           color: selectedColors.join(', '),
@@ -306,32 +310,39 @@ export default function AddItemScreen({ navigation }: Props) {
           customFields: parsedCustomFields
         })
       );
-      createdItemId = created.id;
+      const itemId = created.itemId;
+      createdItemId = itemId;
 
-      const primaryPath = buildItemPrimaryImagePath(userId, created.id, primaryImage.extension);
+      const primaryPath = buildItemPrimaryImagePath(userId, itemId, primaryImage.extension);
       await withRetry(() => uploadImage('items', primaryPath, primaryImage));
-      await withRetry(() => updatePrimaryImagePath(created.id, primaryPath));
 
+      const uploadedPaths: string[] = [];
       if (extraImages.length) {
-        const uploadedPaths: string[] = [];
         for (const image of extraImages) {
-          const path = buildItemExtraImagePath(userId, created.id, image.extension);
+          const path = buildItemExtraImagePath(userId, itemId, image.extension);
           await withRetry(() => uploadImage('items', path, image));
           uploadedPaths.push(path);
         }
-        await withRetry(() => addExtraImages(created.id, uploadedPaths));
       }
 
-      if (selectedClosetIds.length) {
-        await withRetry(() => assignItemToClosets(created.id, selectedClosetIds));
-      }
+      await withRetry(() =>
+        finalizeItemViaBackend({
+          accessToken,
+          itemId,
+          primaryImagePath: primaryPath,
+          extraImagePaths: uploadedPaths,
+          closetIds: selectedClosetIds
+        })
+      );
 
       Alert.alert('Item added', 'Your wardrobe item has been saved.');
       navigation.goBack();
     } catch (error) {
       if (createdItemId) {
         const rollbackItemId = createdItemId;
-        await withRetry(() => deleteItem(rollbackItemId)).catch(() => undefined);
+        await withRetry(() => deleteItemViaBackend({ itemId: rollbackItemId, accessToken })).catch(() =>
+          withRetry(() => deleteItem(rollbackItemId)).catch(() => undefined)
+        );
       }
       setErrorText(error instanceof Error ? error.message : 'Unknown error');
     } finally {

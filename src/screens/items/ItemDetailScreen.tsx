@@ -5,8 +5,8 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
 
 import { listClosets } from '../../services/closetService';
-import { deleteImages } from '../../services/mediaService';
-import { deleteItem, getItem, listItemClosetMappings, listItemImages } from '../../services/itemService';
+import { useAuth } from '../../services/AuthContext';
+import { deleteItem, deleteItemViaBackend, getItem, listItemClosetMappings, listItemImages } from '../../services/itemService';
 import type { Database } from '../../types/database';
 import type { AppStackParamList } from '../../types/navigation';
 import { withRetry } from '../../utils/retry';
@@ -25,6 +25,7 @@ const parseCommaValues = (value: string | null) =>
 
 export default function ItemDetailScreen({ navigation, route }: Props) {
   const { itemId } = route.params;
+  const { session } = useAuth();
 
   const [item, setItem] = useState<ItemRow | null>(null);
   const [extraImages, setExtraImages] = useState<ItemImageRow[]>([]);
@@ -79,9 +80,13 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
     setDeleting(true);
     setErrorText(null);
     try {
-      const imagePaths = [item.primary_image_path, ...extraImages.map((image) => image.image_path)];
-      await withRetry(() => deleteImages('items', imagePaths));
-      await withRetry(() => deleteItem(item.id));
+      const accessToken = session?.access_token;
+      if (accessToken) {
+        await withRetry(() => deleteItemViaBackend({ itemId: item.id, accessToken }));
+      } else {
+        // Fallback if auth context is stale; DB cascade will still remove related rows.
+        await withRetry(() => deleteItem(item.id));
+      }
       Alert.alert('Item deleted', 'This item was removed from your wardrobe.');
       navigation.goBack();
     } catch (error) {

@@ -1,4 +1,5 @@
 import type { Json } from '../types/database';
+import { env } from '../config/env';
 import { supabase } from './supabase';
 
 export type CreateItemInput = {
@@ -111,4 +112,118 @@ export async function assignItemToClosets(itemId: string, closetIds: string[]) {
 export async function deleteItem(itemId: string) {
   const { error } = await supabase.from('clothing_items').delete().eq('id', itemId);
   if (error) throw error;
+}
+
+export async function deleteItemViaBackend(input: { itemId: string; accessToken: string }) {
+  const baseUrl = env.backendUrl.trim().replace(/\/+$/, '');
+  if (!baseUrl) {
+    throw new Error('Backend URL is not configured. Set EXPO_PUBLIC_BACKEND_URL.');
+  }
+
+  const response = await fetch(`${baseUrl}/v1/items/${encodeURIComponent(input.itemId)}`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${input.accessToken}`
+    }
+  });
+
+  let body: unknown = null;
+  try {
+    body = await response.json();
+  } catch {
+    body = null;
+  }
+
+  if (!response.ok) {
+    const message =
+      typeof body === 'object' && body && 'error' in body && typeof (body as { error?: unknown }).error === 'string'
+        ? (body as { error: string }).error
+        : `Delete failed with status ${response.status}`;
+    throw new Error(message);
+  }
+
+  return body;
+}
+
+export async function createItemViaBackend(input: {
+  accessToken: string;
+  name: string;
+  brand?: string;
+  clothingType?: string;
+  color?: string;
+  priceAmount?: string;
+  priceCurrency?: string;
+  season?: string[];
+  material?: string[];
+  customFields?: Json | null;
+}) {
+  const baseUrl = env.backendUrl.trim().replace(/\/+$/, '');
+  if (!baseUrl) {
+    throw new Error('Backend URL is not configured. Set EXPO_PUBLIC_BACKEND_URL.');
+  }
+
+  const response = await fetch(`${baseUrl}/v1/items`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${input.accessToken}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      name: input.name,
+      brand: input.brand,
+      clothingType: input.clothingType,
+      color: input.color,
+      priceAmount: input.priceAmount,
+      priceCurrency: input.priceCurrency,
+      season: input.season,
+      material: input.material,
+      customFields: input.customFields
+    })
+  });
+
+  const body = await response.json().catch(() => null);
+  if (!response.ok) {
+    const message =
+      typeof body === 'object' && body && 'error' in body && typeof (body as { error?: unknown }).error === 'string'
+        ? (body as { error: string }).error
+        : `Create failed with status ${response.status}`;
+    throw new Error(message);
+  }
+  return body as { ok: true; itemId: string };
+}
+
+export async function finalizeItemViaBackend(input: {
+  accessToken: string;
+  itemId: string;
+  primaryImagePath: string;
+  extraImagePaths: string[];
+  closetIds: string[];
+}) {
+  const baseUrl = env.backendUrl.trim().replace(/\/+$/, '');
+  if (!baseUrl) {
+    throw new Error('Backend URL is not configured. Set EXPO_PUBLIC_BACKEND_URL.');
+  }
+
+  const response = await fetch(`${baseUrl}/v1/items/${encodeURIComponent(input.itemId)}/finalize`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${input.accessToken}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      primaryImagePath: input.primaryImagePath,
+      extraImagePaths: input.extraImagePaths,
+      closetIds: input.closetIds
+    })
+  });
+
+  const body = await response.json().catch(() => null);
+  if (!response.ok) {
+    const message =
+      typeof body === 'object' && body && 'error' in body && typeof (body as { error?: unknown }).error === 'string'
+        ? (body as { error: string }).error
+        : `Finalize failed with status ${response.status}`;
+    throw new Error(message);
+  }
+  return body;
 }

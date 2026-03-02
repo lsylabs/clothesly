@@ -33,6 +33,7 @@ export async function requireAuth(req, res, next) {
       userId: payload.sub,
       email: typeof payload.email === 'string' ? payload.email : null,
       role: typeof payload.role === 'string' ? payload.role : null,
+      accessToken: token,
       payload
     };
 
@@ -44,4 +45,3 @@ export async function requireAuth(req, res, next) {
     });
   }
 }
-
