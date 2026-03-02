@@ -342,8 +342,8 @@ function ClosetFallbackCollage({
   itemImageUrls: Record<string, string>;
 }) {
   const tl = itemIds[0] ? itemImageUrls[itemIds[0]] : '';
-  const bl = itemIds[1] ? itemImageUrls[itemIds[1]] : '';
-  const tr = itemIds[2] ? itemImageUrls[itemIds[2]] : '';
+  const tr = itemIds[1] ? itemImageUrls[itemIds[1]] : '';
+  const bl = itemIds[2] ? itemImageUrls[itemIds[2]] : '';
   const br = itemIds[3] ? itemImageUrls[itemIds[3]] : '';
 
   return (
