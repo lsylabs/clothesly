@@ -3,6 +3,8 @@ import { ActivityIndicator, Alert, Image, Pressable, ScrollView, StyleSheet, Tex
 
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import MetadataOptionSelector from '../../components/MetadataOptionSelector';
 import AppButton from '../../components/ui/AppButton';
@@ -32,6 +34,7 @@ type ClosetRow = Database['public']['Tables']['closets']['Row'];
 type MappingRow = Database['public']['Tables']['clothing_item_closets']['Row'];
 
 export default function ItemDetailScreen({ navigation, route }: Props) {
+  const insets = useSafeAreaInsets();
   const { itemId } = route.params;
   const { session } = useAuth();
   const userId = session?.user.id;
@@ -255,7 +258,15 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <View style={styles.screen}>
+      <View style={[styles.header, { paddingTop: insets.top + 6 }]}>
+        <Pressable hitSlop={8} onPress={() => navigation.goBack()} style={styles.headerButton}>
+          <Ionicons color="#111111" name="chevron-back" size={24} />
+        </Pressable>
+        <Text style={styles.headerTitle}>Item Details</Text>
+        <View style={styles.headerSpacer} />
+      </View>
+      <ScrollView contentContainerStyle={styles.container}>
       {loading ? (
         <View style={styles.centered}>
           <ActivityIndicator color="#17181b" />
@@ -361,7 +372,8 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
           />
         </>
       ) : null}
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
@@ -398,8 +410,33 @@ function OptionChips({ label, values }: { label: string; values: string[] }) {
 }
 
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: '#ffffff'
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 14,
+    paddingBottom: 8
+  },
+  headerButton: {
+    paddingHorizontal: 2,
+    paddingVertical: 2
+  },
+  headerTitle: {
+    fontSize: 32,
+    fontWeight: '700',
+    color: '#111111',
+    letterSpacing: -0.7
+  },
+  headerSpacer: {
+    width: 28
+  },
   container: {
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingBottom: 22,
     backgroundColor: '#ffffff',
     gap: 12
   },

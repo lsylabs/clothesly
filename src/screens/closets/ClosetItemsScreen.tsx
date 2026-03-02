@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Alert, Modal, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { useFocusEffect } from '@react-navigation/native';
@@ -37,16 +37,6 @@ export default function ClosetItemsScreen({ navigation, route }: Props) {
   const [isActionSheetVisible, setActionSheetVisible] = useState(false);
   const [deletingCloset, setDeletingCloset] = useState(false);
   const insets = useSafeAreaInsets();
-
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerRight: () => (
-        <Pressable hitSlop={8} onPress={() => setActionSheetVisible(true)} style={styles.headerAction}>
-          <Ionicons color="#232429" name="ellipsis-horizontal" size={22} />
-        </Pressable>
-      )
-    });
-  }, [navigation]);
 
   const applyData = useCallback((data: { items: ItemRow[]; mappings: MappingRow[]; loadedAt: number }) => {
     setItems(data.items);
@@ -179,6 +169,18 @@ export default function ClosetItemsScreen({ navigation, route }: Props) {
           setRefreshing(false);
         }} refreshing={refreshing} tintColor="#17181b" />}
       >
+        <View style={[styles.header, { paddingTop: insets.top + 6 }]}>
+          <Pressable hitSlop={8} onPress={() => navigation.goBack()} style={styles.headerButton}>
+            <Ionicons color="#111111" name="chevron-back" size={24} />
+          </Pressable>
+          <Text numberOfLines={1} style={styles.headerTitle}>
+            {closetName}
+          </Text>
+          <Pressable hitSlop={8} onPress={() => setActionSheetVisible(true)} style={styles.headerButton}>
+            <Ionicons color="#111111" name="ellipsis-horizontal" size={22} />
+          </Pressable>
+        </View>
+
         {loading && !hasLoadedOnce ? (
           <View style={styles.centered}>
             <ActivityIndicator color="#17181b" />
@@ -229,6 +231,26 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 12
   },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingBottom: 8
+  },
+  headerButton: {
+    paddingHorizontal: 2,
+    paddingVertical: 2,
+    width: 28
+  },
+  headerTitle: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 32,
+    fontWeight: '700',
+    color: '#111111',
+    letterSpacing: -0.7,
+    marginHorizontal: 10
+  },
   centered: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -241,10 +263,6 @@ const styles = StyleSheet.create({
   errorText: {
     color: '#a04f4f',
     fontWeight: '600'
-  },
-  headerAction: {
-    paddingHorizontal: 4,
-    paddingVertical: 2
   },
   sheetBackdrop: {
     flex: 1,
