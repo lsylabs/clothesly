@@ -149,15 +149,6 @@ export default function WardrobeScreen() {
       <View style={styles.header}>
         <Text style={styles.title}>Wardrobe</Text>
 
-        <View style={styles.actions}>
-          <Pressable onPress={() => navigation.navigate('AddItem')} style={styles.primaryAction}>
-            <Text style={styles.primaryActionText}>Add Item</Text>
-          </Pressable>
-          <Pressable onPress={() => navigation.navigate('AddCloset')} style={styles.secondaryAction}>
-            <Text style={styles.secondaryActionText}>Create Closet</Text>
-          </Pressable>
-        </View>
-
         <View style={styles.segment}>
           <Pressable onPress={() => setViewMode('closets')} style={[styles.segmentButton, viewMode === 'closets' && styles.segmentButtonActive]}>
             <Text style={[styles.segmentText, viewMode === 'closets' && styles.segmentTextActive]}>By Closet</Text>
@@ -196,9 +187,10 @@ export default function WardrobeScreen() {
                 imageUrls={itemImageUrls}
                 items={items}
                 onPressItem={(itemId) => navigation.navigate('ItemDetail', { itemId })}
+                onPressAdd={() => navigation.navigate('AddItem')}
               />
             ) : (
-              <Text style={styles.empty}>No items yet.</Text>
+              <ItemGrid imageUrls={itemImageUrls} items={[]} onPressAdd={() => navigation.navigate('AddItem')} onPressItem={() => undefined} />
             )}
           </>
         ) : null}
@@ -223,6 +215,10 @@ export default function WardrobeScreen() {
                       </Pressable>
                     );
                   })}
+                  <Pressable onPress={() => navigation.navigate('AddCloset')} style={[styles.closetCard, styles.addTile]}>
+                    <Text style={styles.addTileIcon}>+</Text>
+                    <Text style={styles.addTileLabel}>Create Closet</Text>
+                  </Pressable>
                 </View>
                 <Text style={styles.sectionTitle}>Items in Selected Closet ({selectedClosetItems.length})</Text>
                 {selectedClosetItems.length ? (
@@ -230,13 +226,24 @@ export default function WardrobeScreen() {
                     imageUrls={itemImageUrls}
                     items={selectedClosetItems}
                     onPressItem={(itemId) => navigation.navigate('ItemDetail', { itemId })}
+                    onPressAdd={() => navigation.navigate('AddItem')}
                   />
                 ) : (
-                  <Text style={styles.empty}>No items in this closet yet.</Text>
+                  <ItemGrid
+                    imageUrls={itemImageUrls}
+                    items={[]}
+                    onPressAdd={() => navigation.navigate('AddItem')}
+                    onPressItem={() => undefined}
+                  />
                 )}
               </>
             ) : (
-              <Text style={styles.empty}>No closets yet. Create your first closet.</Text>
+              <View style={styles.closetGrid}>
+                <Pressable onPress={() => navigation.navigate('AddCloset')} style={[styles.closetCard, styles.addTile]}>
+                  <Text style={styles.addTileIcon}>+</Text>
+                  <Text style={styles.addTileLabel}>Create Closet</Text>
+                </Pressable>
+              </View>
             )}
           </>
         ) : null}
@@ -248,11 +255,13 @@ export default function WardrobeScreen() {
 function ItemGrid({
   items,
   imageUrls,
-  onPressItem
+  onPressItem,
+  onPressAdd
 }: {
   items: ItemRow[];
   imageUrls: Record<string, string>;
   onPressItem: (itemId: string) => void;
+  onPressAdd: () => void;
 }) {
   return (
     <View style={styles.itemGrid}>
@@ -270,6 +279,14 @@ function ItemGrid({
           </Text>
         </Pressable>
       ))}
+      <Pressable onPress={onPressAdd} style={[styles.itemTile, styles.addTile]}>
+        <View style={[styles.itemImage, styles.itemImagePlaceholder]}>
+          <Text style={styles.addTileIcon}>+</Text>
+        </View>
+        <Text numberOfLines={1} style={styles.addTileLabel}>
+          Add Item
+        </Text>
+      </Pressable>
     </View>
   );
 }
@@ -295,34 +312,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: -0.8,
     color: '#16171a'
-  },
-  actions: {
-    flexDirection: 'row',
-    gap: 12
-  },
-  primaryAction: {
-    flex: 1,
-    backgroundColor: '#141518',
-    borderRadius: 14,
-    alignItems: 'center',
-    paddingVertical: 13
-  },
-  primaryActionText: {
-    color: '#fff',
-    fontWeight: '700'
-  },
-  secondaryAction: {
-    flex: 1,
-    borderWidth: 2,
-    borderColor: '#c7c6ca',
-    borderRadius: 14,
-    alignItems: 'center',
-    paddingVertical: 12,
-    backgroundColor: '#efeff0'
-  },
-  secondaryActionText: {
-    color: '#26272b',
-    fontWeight: '700'
   },
   segment: {
     backgroundColor: '#e4e4e6',
@@ -411,6 +400,24 @@ const styles = StyleSheet.create({
   itemImagePlaceholderText: {
     color: '#7a7b82',
     fontWeight: '500'
+  },
+  addTile: {
+    borderStyle: 'dashed',
+    borderColor: '#c8c8ce',
+    backgroundColor: '#f4f4f6',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  addTileIcon: {
+    fontSize: 30,
+    lineHeight: 30,
+    color: '#5b5c64',
+    fontWeight: '300'
+  },
+  addTileLabel: {
+    marginTop: 6,
+    color: '#5b5c64',
+    fontWeight: '600'
   },
   itemTitle: {
     fontWeight: '700',
