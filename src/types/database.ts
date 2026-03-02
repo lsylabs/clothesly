@@ -173,6 +173,36 @@ export type Database = {
           }
         ];
       };
+      item_metadata_options: {
+        Row: {
+          id: string;
+          user_id: string;
+          category: string;
+          label: string;
+          label_normalized: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          category: string;
+          label: string;
+          created_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          category?: string;
+          label?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "item_metadata_options_user_id_fkey";
+            columns: ["user_id"];
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -188,4 +218,3 @@ export type Database = {
     };
   };
 };
-

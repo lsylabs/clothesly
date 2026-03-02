@@ -68,3 +68,10 @@ export async function uploadImage(bucket: 'avatars' | 'closets' | 'items', path:
   if (error) throw error;
 }
 
+export async function deleteImages(bucket: 'avatars' | 'closets' | 'items', paths: string[]) {
+  const uniquePaths = Array.from(new Set(paths.map((path) => path.trim()).filter((path) => Boolean(path) && path !== 'pending')));
+  if (!uniquePaths.length) return;
+
+  const { error } = await supabase.storage.from(bucket).remove(uniquePaths);
+  if (error) throw error;
+}

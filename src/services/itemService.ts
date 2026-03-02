@@ -27,6 +27,22 @@ export async function listItemClosetMappings() {
   return data;
 }
 
+export async function getItem(itemId: string) {
+  const { data, error } = await supabase.from('clothing_items').select('*').eq('id', itemId).single();
+  if (error) throw error;
+  return data;
+}
+
+export async function listItemImages(itemId: string) {
+  const { data, error } = await supabase
+    .from('clothing_item_images')
+    .select('*')
+    .eq('item_id', itemId)
+    .order('sort_order', { ascending: true });
+  if (error) throw error;
+  return data;
+}
+
 export async function createItem(input: CreateItemInput) {
   const { data, error } = await supabase
     .from('clothing_items')

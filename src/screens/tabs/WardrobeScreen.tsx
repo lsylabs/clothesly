@@ -113,7 +113,11 @@ export default function WardrobeScreen() {
       {!loading && viewMode === 'all' ? (
         <>
           <Text style={styles.sectionTitle}>All Items ({items.length})</Text>
-          {items.length ? items.map((item) => <ItemCard item={item} key={item.id} />) : <Text style={styles.empty}>No items yet.</Text>}
+          {items.length ? (
+            items.map((item) => <ItemCard item={item} key={item.id} onPress={() => navigation.navigate('ItemDetail', { itemId: item.id })} />)
+          ) : (
+            <Text style={styles.empty}>No items yet.</Text>
+          )}
         </>
       ) : null}
 
@@ -139,7 +143,13 @@ export default function WardrobeScreen() {
                 })}
               </View>
               <Text style={styles.sectionTitle}>Items in Selected Closet ({selectedClosetItems.length})</Text>
-              {selectedClosetItems.length ? selectedClosetItems.map((item) => <ItemCard item={item} key={item.id} />) : <Text style={styles.empty}>No items in this closet yet.</Text>}
+              {selectedClosetItems.length ? (
+                selectedClosetItems.map((item) => (
+                  <ItemCard item={item} key={item.id} onPress={() => navigation.navigate('ItemDetail', { itemId: item.id })} />
+                ))
+              ) : (
+                <Text style={styles.empty}>No items in this closet yet.</Text>
+              )}
             </>
           ) : (
             <Text style={styles.empty}>No closets yet. Create your first closet.</Text>
@@ -150,15 +160,15 @@ export default function WardrobeScreen() {
   );
 }
 
-function ItemCard({ item }: { item: ItemRow }) {
+function ItemCard({ item, onPress }: { item: ItemRow; onPress: () => void }) {
   return (
-    <View style={styles.itemCard}>
+    <Pressable onPress={onPress} style={styles.itemCard}>
       <Text style={styles.itemTitle}>{item.name}</Text>
       <Text style={styles.itemMeta}>Type: {item.clothing_type || 'N/A'}</Text>
       <Text style={styles.itemMeta}>Color: {item.color || 'N/A'}</Text>
       <Text style={styles.itemMeta}>Brand: {item.brand || 'N/A'}</Text>
       <Text style={styles.itemMeta}>Price: {item.price_amount ? `${item.price_currency || 'USD'} ${item.price_amount}` : 'N/A'}</Text>
-    </View>
+    </Pressable>
   );
 }
 

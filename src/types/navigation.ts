@@ -12,6 +12,7 @@ export type AppStackParamList = {
   Tabs: undefined;
   AddItem: undefined;
   AddCloset: undefined;
+  ItemDetail: { itemId: string };
 };
 
 export type AppTabsParamList = {
