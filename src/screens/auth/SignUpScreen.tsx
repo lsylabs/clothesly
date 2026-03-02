@@ -1,10 +1,12 @@
 import { useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, TextInput } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text } from 'react-native';
 
 import * as AuthSession from 'expo-auth-session';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import AppButton from '../../components/ui/AppButton';
+import AppTextInput from '../../components/ui/AppTextInput';
 import { supabase } from '../../services/supabase';
 import type { AuthStackParamList } from '../../types/navigation';
 
@@ -50,7 +52,7 @@ export default function SignUpScreen({ navigation }: Props) {
       <Text style={styles.title}>Create account</Text>
       <Text style={styles.subtitle}>Start building your digital wardrobe</Text>
 
-      <TextInput
+      <AppTextInput
         autoCapitalize="none"
         keyboardType="email-address"
         onChangeText={setEmail}
@@ -58,7 +60,7 @@ export default function SignUpScreen({ navigation }: Props) {
         style={styles.input}
         value={email}
       />
-      <TextInput
+      <AppTextInput
         onChangeText={setPassword}
         placeholder="Password"
         secureTextEntry
@@ -66,9 +68,7 @@ export default function SignUpScreen({ navigation }: Props) {
         value={password}
       />
 
-      <Pressable onPress={handleSignUp} style={[styles.button, loading && styles.disabled]}>
-        <Text style={styles.buttonText}>{loading ? 'Creating...' : 'Create account'}</Text>
-      </Pressable>
+      <AppButton label="Create account" loading={loading} loadingLabel="Creating..." onPress={handleSignUp} style={styles.button} />
 
       <Pressable onPress={() => navigation.navigate('SignIn')}>
         <Text style={styles.link}>Already have an account? Sign in</Text>
@@ -97,27 +97,10 @@ const styles = StyleSheet.create({
     marginBottom: 24
   },
   input: {
-    backgroundColor: '#ffffff',
-    borderRadius: 14,
-    paddingHorizontal: 14,
-    paddingVertical: 13,
-    marginBottom: 12,
-    borderWidth: 1.5,
-    borderColor: '#d9dce3'
+    marginBottom: 12
   },
   button: {
-    backgroundColor: '#141518',
-    borderRadius: 14,
-    paddingVertical: 14,
-    alignItems: 'center',
     marginTop: 4
-  },
-  disabled: {
-    opacity: 0.6
-  },
-  buttonText: {
-    color: '#ffffff',
-    fontWeight: '600'
   },
   link: {
     marginTop: 18,

@@ -1,9 +1,19 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Alert, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
 
+import MetadataOptionSelector from '../../components/MetadataOptionSelector';
+import AppButton from '../../components/ui/AppButton';
+import SectionHeader from '../../components/ui/SectionHeader';
+import {
+  DEFAULT_ITEM_METADATA_OPTIONS,
+  EMPTY_ITEM_METADATA_OPTIONS,
+  mergeMetadataOptions,
+  parseCommaValues,
+  toggleMetadataOption
+} from '../../features/items/metadataOptions';
 import { listClosets } from '../../services/closetService';
 import { useAuth } from '../../services/AuthContext';
 import { clearCachedItemDetail, getCachedItemDetail, getCachedItemDetailSync, setCachedItemDetail } from '../../services/itemDetailCacheService';
@@ -21,43 +31,6 @@ type ItemImageRow = Database['public']['Tables']['clothing_item_images']['Row'];
 type ClosetRow = Database['public']['Tables']['closets']['Row'];
 type MappingRow = Database['public']['Tables']['clothing_item_closets']['Row'];
 
-const parseCommaValues = (value: string | null) =>
-  (value ?? '')
-    .split(',')
-    .map((entry) => entry.trim())
-    .filter(Boolean);
-
-const DEFAULT_OPTIONS: Record<ItemMetadataCategory, string[]> = {
-  brand: ['Nike', 'Adidas', 'Uniqlo', 'Zara', "Levi's", 'H&M', 'Patagonia', 'Lululemon', 'The North Face', 'Gap'],
-  clothing_type: ['T-Shirt', 'Shirt', 'Sweater', 'Hoodie', 'Jacket', 'Coat', 'Jeans', 'Pants', 'Skirt', 'Dress', 'Shorts'],
-  color: ['Black', 'White', 'Gray', 'Navy', 'Blue', 'Green', 'Red', 'Pink', 'Purple', 'Brown', 'Beige', 'Yellow'],
-  material: ['Cotton', 'Denim', 'Wool', 'Linen', 'Silk', 'Polyester', 'Nylon', 'Leather', 'Cashmere', 'Rayon'],
-  season: ['Spring', 'Summer', 'Fall', 'Winter']
-};
-
-const EMPTY_CUSTOM_OPTIONS: Record<ItemMetadataCategory, string[]> = {
-  brand: [],
-  clothing_type: [],
-  color: [],
-  material: [],
-  season: []
-};
-
-const mergeOptions = (defaultOptions: string[], customOptions: string[]) => {
-  const seen = new Set(defaultOptions.map((option) => option.toLowerCase()));
-  const merged = [...defaultOptions];
-  for (const option of customOptions) {
-    const normalized = option.toLowerCase();
-    if (seen.has(normalized)) continue;
-    merged.push(option);
-    seen.add(normalized);
-  }
-  return merged;
-};
-
-const toggleOption = (current: string[], value: string) =>
-  current.includes(value) ? current.filter((entry) => entry !== value) : [...current, value];
-
 export default function ItemDetailScreen({ navigation, route }: Props) {
   const { itemId } = route.params;
   const { session } = useAuth();
@@ -73,7 +46,7 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
   const [selectedColors, setSelectedColors] = useState<string[]>(parseCommaValues(initialCache?.item?.color ?? null));
   const [selectedMaterials, setSelectedMaterials] = useState<string[]>(initialCache?.item?.material ?? []);
   const [selectedSeasons, setSelectedSeasons] = useState<string[]>(initialCache?.item?.season ?? []);
-  const [customOptions, setCustomOptions] = useState<Record<ItemMetadataCategory, string[]>>(EMPTY_CUSTOM_OPTIONS);
+  const [customOptions, setCustomOptions] = useState<Record<ItemMetadataCategory, string[]>>(EMPTY_ITEM_METADATA_OPTIONS);
   const [loading, setLoading] = useState(!initialCache);
   const [deleting, setDeleting] = useState(false);
   const [savingCategories, setSavingCategories] = useState(false);
@@ -176,11 +149,26 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
     }, [item, loadData])
   );
 
-  const brandOptions = useMemo(() => mergeOptions(DEFAULT_OPTIONS.brand, customOptions.brand), [customOptions.brand]);
-  const typeOptions = useMemo(() => mergeOptions(DEFAULT_OPTIONS.clothing_type, customOptions.clothing_type), [customOptions.clothing_type]);
-  const colorOptions = useMemo(() => mergeOptions(DEFAULT_OPTIONS.color, customOptions.color), [customOptions.color]);
-  const materialOptions = useMemo(() => mergeOptions(DEFAULT_OPTIONS.material, customOptions.material), [customOptions.material]);
-  const seasonOptions = useMemo(() => mergeOptions(DEFAULT_OPTIONS.season, customOptions.season), [customOptions.season]);
+  const brandOptions = useMemo(
+    () => mergeMetadataOptions(DEFAULT_ITEM_METADATA_OPTIONS.brand, customOptions.brand),
+    [customOptions.brand]
+  );
+  const typeOptions = useMemo(
+    () => mergeMetadataOptions(DEFAULT_ITEM_METADATA_OPTIONS.clothing_type, customOptions.clothing_type),
+    [customOptions.clothing_type]
+  );
+  const colorOptions = useMemo(
+    () => mergeMetadataOptions(DEFAULT_ITEM_METADATA_OPTIONS.color, customOptions.color),
+    [customOptions.color]
+  );
+  const materialOptions = useMemo(
+    () => mergeMetadataOptions(DEFAULT_ITEM_METADATA_OPTIONS.material, customOptions.material),
+    [customOptions.material]
+  );
+  const seasonOptions = useMemo(
+    () => mergeMetadataOptions(DEFAULT_ITEM_METADATA_OPTIONS.season, customOptions.season),
+    [customOptions.season]
+  );
 
   const handleAddCustomOption = async (category: ItemMetadataCategory, value: string) => {
     const trimmed = value.trim();
@@ -189,7 +177,7 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
       throw new Error('You need to sign in again before adding a custom option.');
     }
 
-    const existing = [...DEFAULT_OPTIONS[category], ...customOptions[category]];
+    const existing = [...DEFAULT_ITEM_METADATA_OPTIONS[category], ...customOptions[category]];
     if (existing.some((entry) => entry.toLowerCase() === trimmed.toLowerCase())) return;
 
     await withRetry(() =>
@@ -277,15 +265,13 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
       {!loading && !item ? (
         <View style={styles.errorCard}>
           <Text style={styles.errorText}>Item not found.</Text>
-          <Pressable onPress={() => navigation.goBack()} style={styles.secondarySingle}>
-            <Text style={styles.secondaryText}>Go Back</Text>
-          </Pressable>
+          <AppButton label="Go Back" onPress={() => navigation.goBack()} style={styles.secondarySingle} variant="secondary" />
         </View>
       ) : null}
 
       {!loading && item ? (
         <>
-          <Text style={styles.sectionTitle}>Main Image</Text>
+          <SectionHeader title="Main Image" />
           {primaryImageUrl ? (
             <Image resizeMode="cover" source={{ uri: primaryImageUrl }} style={styles.mainImage} />
           ) : (
@@ -294,29 +280,29 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
             </View>
           )}
 
-          <Text style={styles.sectionTitle}>Metadata</Text>
+          <SectionHeader title="Metadata" />
           <ReadonlyField label="Item Name" value={item.name} />
-          <OptionSelector
+          <MetadataOptionSelector
             disabled={savingCategories}
             label="Brand"
             onAddCustomOption={async (value) => handleAddCustomOption('brand', value)}
-            onToggle={(value) => setSelectedBrands((current) => toggleOption(current, value))}
+            onToggle={(value) => setSelectedBrands((current) => toggleMetadataOption(current, value))}
             options={brandOptions}
             selected={selectedBrands}
           />
-          <OptionSelector
+          <MetadataOptionSelector
             disabled={savingCategories}
             label="Clothing Type"
             onAddCustomOption={async (value) => handleAddCustomOption('clothing_type', value)}
-            onToggle={(value) => setSelectedTypes((current) => toggleOption(current, value))}
+            onToggle={(value) => setSelectedTypes((current) => toggleMetadataOption(current, value))}
             options={typeOptions}
             selected={selectedTypes}
           />
-          <OptionSelector
+          <MetadataOptionSelector
             disabled={savingCategories}
             label="Color"
             onAddCustomOption={async (value) => handleAddCustomOption('color', value)}
-            onToggle={(value) => setSelectedColors((current) => toggleOption(current, value))}
+            onToggle={(value) => setSelectedColors((current) => toggleMetadataOption(current, value))}
             options={colorOptions}
             selected={selectedColors}
           />
@@ -324,55 +310,55 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
             label="Price"
             value={item.price_amount ? `${item.price_currency || 'USD'} ${item.price_amount}` : 'N/A'}
           />
-          <OptionSelector
+          <MetadataOptionSelector
             disabled={savingCategories}
             label="Materials"
             onAddCustomOption={async (value) => handleAddCustomOption('material', value)}
-            onToggle={(value) => setSelectedMaterials((current) => toggleOption(current, value))}
+            onToggle={(value) => setSelectedMaterials((current) => toggleMetadataOption(current, value))}
             options={materialOptions}
             selected={selectedMaterials}
           />
-          <OptionSelector
+          <MetadataOptionSelector
             disabled={savingCategories}
             label="Seasons"
             onAddCustomOption={async (value) => handleAddCustomOption('season', value)}
-            onToggle={(value) => setSelectedSeasons((current) => toggleOption(current, value))}
+            onToggle={(value) => setSelectedSeasons((current) => toggleMetadataOption(current, value))}
             options={seasonOptions}
             selected={selectedSeasons}
           />
-          <Pressable
-            disabled={savingCategories}
+          <AppButton
+            label="Save Category Changes"
+            loading={savingCategories}
+            loadingLabel="Saving..."
             onPress={handleSaveCategoryChanges}
-            style={[styles.primary, savingCategories && styles.disabled]}
-          >
-            <Text style={styles.primaryText}>{savingCategories ? 'Saving...' : 'Save Category Changes'}</Text>
-          </Pressable>
+            style={styles.primary}
+          />
           <ReadonlyField
             label="Custom Fields"
             value={item.custom_fields ? JSON.stringify(item.custom_fields, null, 2) : 'N/A'}
             multiline
           />
 
-          <Text style={styles.sectionTitle}>Closets</Text>
+          <SectionHeader title="Closets" />
           <OptionChips label="Selected Closets" values={selectedClosetNames} />
 
-          <Text style={styles.sectionTitle}>Extra Outfit Photos</Text>
+          <SectionHeader title="Extra Outfit Photos" />
           <ReadonlyField label="Count" value={`${extraImages.length}`} />
 
           {errorText ? <Text style={styles.errorText}>{errorText}</Text> : null}
 
-          <Pressable
+          <AppButton
             disabled={deleting}
+            label={deleting ? 'Deleting...' : 'Delete Item'}
             onPress={() =>
               Alert.alert('Delete item?', 'This will delete the item and its stored photos.', [
                 { text: 'Cancel', style: 'cancel' },
                 { text: 'Delete', style: 'destructive', onPress: () => void handleDeleteItem() }
               ])
             }
-            style={[styles.danger, deleting && styles.disabled]}
-          >
-            <Text style={styles.dangerText}>{deleting ? 'Deleting...' : 'Delete Item'}</Text>
-          </Pressable>
+            style={styles.danger}
+            variant="danger"
+          />
         </>
       ) : null}
     </ScrollView>
@@ -411,101 +397,6 @@ function OptionChips({ label, values }: { label: string; values: string[] }) {
   );
 }
 
-function OptionSelector({
-  label,
-  options,
-  selected,
-  onToggle,
-  onAddCustomOption,
-  disabled = false
-}: {
-  label: string;
-  options: string[];
-  selected: string[];
-  onToggle: (value: string) => void;
-  onAddCustomOption: (value: string) => Promise<void>;
-  disabled?: boolean;
-}) {
-  const [isAddingCustom, setIsAddingCustom] = useState(false);
-  const [customOptionText, setCustomOptionText] = useState('');
-  const [savingCustom, setSavingCustom] = useState(false);
-
-  return (
-    <View style={styles.optionGroup}>
-      <View style={styles.optionHeader}>
-        <Text style={styles.optionLabel}>{label}</Text>
-        <Pressable
-          disabled={disabled || savingCustom}
-          onPress={() => {
-            setIsAddingCustom((current) => !current);
-            setCustomOptionText('');
-          }}
-          style={[styles.addOptionButton, (disabled || savingCustom) && styles.disabled]}
-        >
-          <Text style={styles.addOptionButtonText}>+ Add</Text>
-        </Pressable>
-      </View>
-      {isAddingCustom ? (
-        <View style={styles.addOptionRow}>
-          <TextInput
-            editable={!disabled && !savingCustom}
-            onChangeText={setCustomOptionText}
-            placeholder={`Custom ${label.toLowerCase()}`}
-            style={[styles.input, styles.addOptionInput]}
-            value={customOptionText}
-          />
-          <Pressable
-            disabled={disabled || savingCustom}
-            onPress={async () => {
-              const trimmed = customOptionText.trim();
-              if (!trimmed) return;
-              setSavingCustom(true);
-              try {
-                await onAddCustomOption(trimmed);
-                onToggle(trimmed);
-                setCustomOptionText('');
-                setIsAddingCustom(false);
-              } catch (error) {
-                Alert.alert('Could not add option', error instanceof Error ? error.message : 'Unknown error');
-              } finally {
-                setSavingCustom(false);
-              }
-            }}
-            style={[styles.addOptionAction, styles.addOptionConfirm, (disabled || savingCustom) && styles.disabled]}
-          >
-            <Text style={styles.addOptionActionText}>Add</Text>
-          </Pressable>
-          <Pressable
-            disabled={disabled || savingCustom}
-            onPress={() => {
-              setCustomOptionText('');
-              setIsAddingCustom(false);
-            }}
-            style={[styles.addOptionAction, (disabled || savingCustom) && styles.disabled]}
-          >
-            <Text style={styles.addOptionActionText}>Cancel</Text>
-          </Pressable>
-        </View>
-      ) : null}
-      <View style={styles.optionList}>
-        {options.map((option) => {
-          const isSelected = selected.includes(option);
-          return (
-            <Pressable
-              key={`${label}:${option}`}
-              disabled={disabled}
-              onPress={() => onToggle(option)}
-              style={[styles.chip, isSelected && styles.chipSelected, disabled && styles.disabled]}
-            >
-              <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>{option}</Text>
-            </Pressable>
-          );
-        })}
-      </View>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   container: {
     padding: 16,
@@ -517,12 +408,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 16
   },
-  sectionTitle: {
-    marginTop: 8,
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#17181b'
-  },
   optionGroup: {
     gap: 8
   },
@@ -530,47 +415,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#1e1f23'
-  },
-  optionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 8
-  },
-  addOptionButton: {
-    borderWidth: 1.5,
-    borderColor: '#d9dce3',
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    backgroundColor: '#ffffff'
-  },
-  addOptionButtonText: {
-    color: '#232429',
-    fontWeight: '600'
-  },
-  addOptionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8
-  },
-  addOptionInput: {
-    flex: 1
-  },
-  addOptionAction: {
-    borderWidth: 1,
-    borderColor: '#d9dce3',
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    backgroundColor: '#ffffff'
-  },
-  addOptionConfirm: {
-    borderColor: '#9f9ea4'
-  },
-  addOptionActionText: {
-    color: '#292a30',
-    fontWeight: '600'
   },
   optionList: {
     flexDirection: 'row',
@@ -620,16 +464,7 @@ const styles = StyleSheet.create({
     color: '#6f7077'
   },
   secondarySingle: {
-    borderWidth: 2,
-    borderColor: '#d9dce3',
-    borderRadius: 14,
-    paddingVertical: 12,
-    alignItems: 'center',
-    backgroundColor: '#ffffff'
-  },
-  secondaryText: {
-    color: '#222327',
-    fontWeight: '600'
+    alignSelf: 'flex-start'
   },
   errorCard: {
     borderWidth: 1.5,
@@ -644,28 +479,9 @@ const styles = StyleSheet.create({
     fontWeight: '600'
   },
   danger: {
-    marginTop: 12,
-    backgroundColor: '#141518',
-    borderRadius: 14,
-    alignItems: 'center',
-    paddingVertical: 14
-  },
-  dangerText: {
-    color: '#fff',
-    fontWeight: '700'
+    marginTop: 12
   },
   primary: {
-    marginTop: 2,
-    backgroundColor: '#141518',
-    borderRadius: 14,
-    alignItems: 'center',
-    paddingVertical: 12
-  },
-  primaryText: {
-    color: '#fff',
-    fontWeight: '700'
-  },
-  disabled: {
-    opacity: 0.65
+    marginTop: 2
   }
 });

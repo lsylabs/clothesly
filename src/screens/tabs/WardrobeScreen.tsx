@@ -5,6 +5,7 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import ItemCollectionView from '../../components/ItemCollectionView';
+import PageTitle from '../../components/ui/PageTitle';
 import { useAuth } from '../../services/AuthContext';
 import { getCachedSignedImageUrl, getCachedSignedImageUrlSync } from '../../services/imageCacheService';
 import { fetchWardrobeData, getWardrobeDataCache } from '../../services/wardrobeDataService';
@@ -207,7 +208,7 @@ export default function WardrobeScreen() {
   return (
     <View style={styles.screen}>
       <View style={styles.header}>
-        <Text style={styles.title}>Wardrobe</Text>
+        <PageTitle title="Wardrobe" />
 
         <View style={styles.segment}>
           <Pressable onPress={() => setViewMode('closets')} style={[styles.segmentButton, viewMode === 'closets' && styles.segmentButtonActive]}>
@@ -382,12 +383,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     padding: 16,
     gap: 12
-  },
-  title: {
-    fontSize: 42,
-    fontWeight: '700',
-    letterSpacing: -0.8,
-    color: '#16171a'
   },
   segment: {
     backgroundColor: '#f7f8fa',

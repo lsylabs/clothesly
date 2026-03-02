@@ -1,6 +1,8 @@
 import { useEffect } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
+import InfoCard from '../../components/ui/InfoCard';
+import PageTitle from '../../components/ui/PageTitle';
 import { useAuth } from '../../services/AuthContext';
 import { warmSignedImageUrls } from '../../services/imageCacheService';
 import { prefetchWardrobeData } from '../../services/wardrobeDataService';
@@ -22,10 +24,8 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Home</Text>
-      <View style={styles.card}>
-        <Text style={styles.body}>Dashboard and recommendations will land here in Milestone 3+.</Text>
-      </View>
+      <PageTitle title="Home" />
+      <InfoCard style={styles.card} text="Dashboard and recommendations will land here in Milestone 3+." />
     </View>
   );
 }
@@ -36,23 +36,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     padding: 20
   },
-  title: {
-    fontSize: 42,
-    fontWeight: '700',
-    letterSpacing: -0.8,
-    color: '#16171a'
-  },
   card: {
-    marginTop: 14,
-    borderRadius: 20,
-    padding: 18,
-    backgroundColor: '#ffffff',
-    borderWidth: 1,
-    borderColor: '#e6e8ec'
-  },
-  body: {
-    color: '#45464c',
-    fontSize: 16,
-    lineHeight: 24
+    marginTop: 14
   }
 });

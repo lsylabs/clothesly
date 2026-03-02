@@ -1,6 +1,8 @@
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import AppButton from './ui/AppButton';
+
 type Props = {
   visible: boolean;
   onClose: () => void;
@@ -16,15 +18,9 @@ export default function AddActionSheet({ visible, onClose, onAddItem, onCreateCl
       <Pressable onPress={onClose} style={styles.backdrop}>
         <Pressable style={[styles.sheet, { paddingBottom: Math.max(insets.bottom + 12, 34) }]}>
           <Text style={styles.heading}>Quick Add</Text>
-          <Pressable onPress={onAddItem} style={styles.action}>
-            <Text style={styles.actionText}>Add Item</Text>
-          </Pressable>
-          <Pressable onPress={onCreateCloset} style={styles.action}>
-            <Text style={styles.actionText}>Create Closet</Text>
-          </Pressable>
-          <Pressable onPress={onClose} style={styles.cancel}>
-            <Text style={styles.cancelText}>Cancel</Text>
-          </Pressable>
+          <AppButton label="Add Item" onPress={onAddItem} />
+          <AppButton label="Create Closet" onPress={onCreateCloset} />
+          <AppButton label="Cancel" onPress={onClose} style={styles.cancel} variant="secondary" />
         </Pressable>
       </Pressable>
     </Modal>
@@ -51,27 +47,7 @@ const styles = StyleSheet.create({
     color: '#17181b',
     marginBottom: 6
   },
-  action: {
-    backgroundColor: '#141518',
-    paddingVertical: 14,
-    borderRadius: 14,
-    alignItems: 'center'
-  },
-  actionText: {
-    color: '#ffffff',
-    fontWeight: '600'
-  },
   cancel: {
-    paddingVertical: 14,
-    borderRadius: 14,
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#d9dce3',
-    backgroundColor: '#ffffff',
     marginTop: 4
-  },
-  cancelText: {
-    color: '#333333',
-    fontWeight: '600'
   }
 });

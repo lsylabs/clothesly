@@ -1,11 +1,13 @@
 import { useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, TextInput } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text } from 'react-native';
 
 import * as AuthSession from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import AppButton from '../../components/ui/AppButton';
+import AppTextInput from '../../components/ui/AppTextInput';
 import { hasSupabaseEnv } from '../../config/env';
 import { supabase } from '../../services/supabase';
 import type { AuthStackParamList } from '../../types/navigation';
@@ -77,7 +79,7 @@ export default function SignInScreen({ navigation }: Props) {
       <Text style={styles.title}>Clothesly</Text>
       <Text style={styles.subtitle}>Sign in to your wardrobe</Text>
 
-      <TextInput
+      <AppTextInput
         autoCapitalize="none"
         keyboardType="email-address"
         onChangeText={setEmail}
@@ -85,7 +87,7 @@ export default function SignInScreen({ navigation }: Props) {
         style={styles.input}
         value={email}
       />
-      <TextInput
+      <AppTextInput
         onChangeText={setPassword}
         placeholder="Password"
         secureTextEntry
@@ -93,13 +95,9 @@ export default function SignInScreen({ navigation }: Props) {
         value={password}
       />
 
-      <Pressable onPress={handleSignIn} style={[styles.button, loading && styles.disabled]}>
-        <Text style={styles.buttonText}>{loading ? 'Signing in...' : 'Sign In'}</Text>
-      </Pressable>
+      <AppButton label="Sign In" loading={loading} loadingLabel="Signing in..." onPress={handleSignIn} style={styles.button} />
 
-      <Pressable onPress={handleGoogleSignIn} style={styles.secondaryButton}>
-        <Text style={styles.secondaryButtonText}>Continue with Google</Text>
-      </Pressable>
+      <AppButton label="Continue with Google" onPress={handleGoogleSignIn} style={styles.secondaryButton} variant="secondary" />
 
       <Pressable onPress={() => navigation.navigate('SignUp')}>
         <Text style={styles.link}>New here? Create an account</Text>
@@ -128,40 +126,13 @@ const styles = StyleSheet.create({
     marginBottom: 24
   },
   input: {
-    backgroundColor: '#ffffff',
-    borderRadius: 14,
-    paddingHorizontal: 14,
-    paddingVertical: 13,
-    marginBottom: 12,
-    borderWidth: 1.5,
-    borderColor: '#d9dce3'
+    marginBottom: 12
   },
   button: {
-    backgroundColor: '#141518',
-    borderRadius: 14,
-    paddingVertical: 14,
-    alignItems: 'center',
     marginTop: 4
   },
-  disabled: {
-    opacity: 0.6
-  },
-  buttonText: {
-    color: '#ffffff',
-    fontWeight: '600'
-  },
   secondaryButton: {
-    borderRadius: 14,
-    paddingVertical: 14,
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#d9dce3',
-    backgroundColor: '#ffffff',
     marginTop: 12
-  },
-  secondaryButtonText: {
-    color: '#222327',
-    fontWeight: '600'
   },
   link: {
     marginTop: 18,

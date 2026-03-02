@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
+import AppButton from '../../components/ui/AppButton';
+import AppTextInput from '../../components/ui/AppTextInput';
 import { useAuth } from '../../services/AuthContext';
 import { createCloset, updateClosetCover } from '../../services/closetService';
 import type { LocalImage } from '../../services/mediaService';
@@ -61,11 +63,13 @@ export default function AddClosetScreen({ navigation }: Props) {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.label}>Closet Name</Text>
-      <TextInput editable={!loading} onChangeText={setName} placeholder="e.g. Formal, Black, Gym" style={styles.input} value={name} />
+      <AppTextInput editable={!loading} onChangeText={setName} placeholder="e.g. Formal, Black, Gym" value={name} />
 
       <Text style={styles.label}>Cover Image (optional)</Text>
       <View style={styles.row}>
-        <Pressable
+        <AppButton
+          disabled={loading}
+          label="Take Photo"
           onPress={async () => {
             try {
               const image = await pickImageFromCamera();
@@ -74,28 +78,24 @@ export default function AddClosetScreen({ navigation }: Props) {
               Alert.alert('Camera error', error instanceof Error ? error.message : 'Could not open camera');
             }
           }}
-          style={[styles.secondary, loading && styles.disabled]}
+          style={styles.secondary}
+          variant="secondary"
+        />
+        <AppButton
           disabled={loading}
-        >
-          <Text style={styles.secondaryText}>Take Photo</Text>
-        </Pressable>
-        <Pressable
+          label="Choose Photo"
           onPress={async () => {
             const image = await pickImageFromLibrary();
             setCoverImage(image ?? null);
           }}
-          style={[styles.secondary, loading && styles.disabled]}
-          disabled={loading}
-        >
-          <Text style={styles.secondaryText}>Choose Photo</Text>
-        </Pressable>
+          style={styles.secondary}
+          variant="secondary"
+        />
       </View>
       <Text style={styles.fileText}>{coverImage ? `Selected: ${coverImage.uri.split('/').pop()}` : 'No cover selected'}</Text>
       {errorText ? <Text style={styles.errorText}>{errorText}</Text> : null}
 
-      <Pressable disabled={loading} onPress={handleSave} style={[styles.primary, loading && styles.disabled]}>
-        <Text style={styles.primaryText}>{loading ? 'Creating...' : 'Create Closet'}</Text>
-      </Pressable>
+      <AppButton label="Create Closet" loading={loading} loadingLabel="Creating..." onPress={handleSave} style={styles.primary} />
     </ScrollView>
   );
 }
@@ -111,47 +111,18 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#1d1e22'
   },
-  input: {
-    borderWidth: 1.5,
-    borderColor: '#d9dce3',
-    borderRadius: 14,
-    backgroundColor: '#ffffff',
-    paddingHorizontal: 12,
-    paddingVertical: 12
-  },
   row: {
     flexDirection: 'row',
     gap: 12
   },
   secondary: {
-    flex: 1,
-    borderWidth: 2,
-    borderColor: '#d9dce3',
-    borderRadius: 14,
-    paddingVertical: 12,
-    alignItems: 'center',
-    backgroundColor: '#ffffff'
-  },
-  secondaryText: {
-    color: '#24252a',
-    fontWeight: '600'
+    flex: 1
   },
   fileText: {
     color: '#676770'
   },
   primary: {
-    backgroundColor: '#141518',
-    borderRadius: 14,
-    alignItems: 'center',
-    paddingVertical: 14,
     marginTop: 8
-  },
-  primaryText: {
-    color: '#fff',
-    fontWeight: '700'
-  },
-  disabled: {
-    opacity: 0.65
   },
   errorText: {
     color: '#a04f4f',
