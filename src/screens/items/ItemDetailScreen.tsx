@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Alert, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -6,6 +6,7 @@ import { useFocusEffect } from '@react-navigation/native';
 
 import { listClosets } from '../../services/closetService';
 import { useAuth } from '../../services/AuthContext';
+import { clearCachedItemDetail, getCachedItemDetail, getCachedItemDetailSync, setCachedItemDetail } from '../../services/itemDetailCacheService';
 import { getCachedSignedImageUrl } from '../../services/imageCacheService';
 import { createItemMetadataOption, listItemMetadataOptions, type ItemMetadataCategory } from '../../services/itemMetadataOptionService';
 import { deleteItem, deleteItemViaBackend, getItem, listItemClosetMappings, listItemImages, updateItemCategories } from '../../services/itemService';
@@ -61,18 +62,19 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
   const { itemId } = route.params;
   const { session } = useAuth();
   const userId = session?.user.id;
+  const initialCache = getCachedItemDetailSync(itemId);
 
-  const [item, setItem] = useState<ItemRow | null>(null);
-  const [extraImages, setExtraImages] = useState<ItemImageRow[]>([]);
-  const [selectedClosetNames, setSelectedClosetNames] = useState<string[]>([]);
-  const [primaryImageUrl, setPrimaryImageUrl] = useState<string | null>(null);
-  const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
-  const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
-  const [selectedColors, setSelectedColors] = useState<string[]>([]);
-  const [selectedMaterials, setSelectedMaterials] = useState<string[]>([]);
-  const [selectedSeasons, setSelectedSeasons] = useState<string[]>([]);
+  const [item, setItem] = useState<ItemRow | null>(initialCache?.item ?? null);
+  const [extraImages, setExtraImages] = useState<ItemImageRow[]>(initialCache?.extraImages ?? []);
+  const [selectedClosetNames, setSelectedClosetNames] = useState<string[]>(initialCache?.selectedClosetNames ?? []);
+  const [primaryImageUrl, setPrimaryImageUrl] = useState<string | null>(initialCache?.primaryImageUrl ?? null);
+  const [selectedBrands, setSelectedBrands] = useState<string[]>(parseCommaValues(initialCache?.item?.brand ?? null));
+  const [selectedTypes, setSelectedTypes] = useState<string[]>(parseCommaValues(initialCache?.item?.clothing_type ?? null));
+  const [selectedColors, setSelectedColors] = useState<string[]>(parseCommaValues(initialCache?.item?.color ?? null));
+  const [selectedMaterials, setSelectedMaterials] = useState<string[]>(initialCache?.item?.material ?? []);
+  const [selectedSeasons, setSelectedSeasons] = useState<string[]>(initialCache?.item?.season ?? []);
   const [customOptions, setCustomOptions] = useState<Record<ItemMetadataCategory, string[]>>(EMPTY_CUSTOM_OPTIONS);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!initialCache);
   const [deleting, setDeleting] = useState(false);
   const [savingCategories, setSavingCategories] = useState(false);
   const [errorText, setErrorText] = useState<string | null>(null);
@@ -117,6 +119,14 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
         .map((mapping: MappingRow) => closetLookup.get(mapping.closet_id))
         .filter((name): name is string => Boolean(name));
       setSelectedClosetNames(names);
+
+      await setCachedItemDetail(itemId, {
+        item: itemRow,
+        extraImages: imageRows,
+        selectedClosetNames: names,
+        primaryImageUrl: signedUrl,
+        cachedAt: Date.now()
+      });
     } catch (error) {
       setErrorText(error instanceof Error ? error.message : 'Could not load item details.');
       setItem(null);
@@ -133,10 +143,37 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
     }
   }, [itemId]);
 
+  useEffect(() => {
+    let active = true;
+    if (item) return () => {
+      active = false;
+    };
+
+    void getCachedItemDetail(itemId).then((cached) => {
+      if (!active || !cached) return;
+      setItem(cached.item);
+      setExtraImages(cached.extraImages);
+      setSelectedClosetNames(cached.selectedClosetNames);
+      setPrimaryImageUrl(cached.primaryImageUrl);
+      setSelectedBrands(parseCommaValues(cached.item.brand));
+      setSelectedTypes(parseCommaValues(cached.item.clothing_type));
+      setSelectedColors(parseCommaValues(cached.item.color));
+      setSelectedMaterials(cached.item.material ?? []);
+      setSelectedSeasons(cached.item.season ?? []);
+      setLoading(false);
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [item, itemId]);
+
   useFocusEffect(
     useCallback(() => {
-      loadData();
-    }, [loadData])
+      if (!item) {
+        void loadData();
+      }
+    }, [item, loadData])
   );
 
   const brandOptions = useMemo(() => mergeOptions(DEFAULT_OPTIONS.brand, customOptions.brand), [customOptions.brand]);
@@ -185,6 +222,13 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
         })
       );
       setItem(updated);
+      await setCachedItemDetail(item.id, {
+        item: updated,
+        extraImages,
+        selectedClosetNames,
+        primaryImageUrl,
+        cachedAt: Date.now()
+      });
       if (session?.user.id) {
         await refreshWardrobeData(session.user.id).catch(() => undefined);
       }
@@ -212,6 +256,7 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
       if (session?.user.id) {
         await refreshWardrobeData(session.user.id).catch(() => undefined);
       }
+      await clearCachedItemDetail(item.id).catch(() => undefined);
       Alert.alert('Item deleted', 'This item was removed from your wardrobe.');
       navigation.goBack();
     } catch (error) {
