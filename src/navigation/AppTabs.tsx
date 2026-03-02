@@ -53,7 +53,12 @@ export default function AppTabs() {
             height: 72,
             paddingBottom: 9,
             paddingTop: 9,
-            backgroundColor: '#ffffff'
+            backgroundColor: '#ffffff',
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 10 },
+            shadowOpacity: 0.08,
+            shadowRadius: 18,
+            elevation: 10
           }
         }}
       >
