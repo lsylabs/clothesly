@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
@@ -354,121 +354,158 @@ export default function AddItemScreen({ navigation }: Props) {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.sectionTitle}>Main Image</Text>
-      <View style={styles.row}>
-        <Pressable
-          disabled={loading}
-          onPress={async () => {
-            try {
-              const image = await pickImageFromCamera();
-              if (image) setPrimaryImage(image);
-            } catch (error) {
-              Alert.alert('Camera error', error instanceof Error ? error.message : 'Could not open camera');
-            }
-          }}
-          style={[styles.secondary, loading && styles.disabled]}
-        >
-          <Text style={styles.secondaryText}>Camera</Text>
-        </Pressable>
-        <Pressable
-          disabled={loading}
-          onPress={async () => {
-            const image = await pickImageFromLibrary();
-            if (image) setPrimaryImage(image);
-          }}
-          style={[styles.secondary, loading && styles.disabled]}
-        >
-          <Text style={styles.secondaryText}>Album</Text>
-        </Pressable>
-      </View>
-      <Text style={styles.fileText}>{primaryImage ? 'Main image selected' : 'No image selected'}</Text>
-
-      <Text style={styles.sectionTitle}>Metadata</Text>
-      <TextInput editable={!loading} onChangeText={setName} placeholder="Item Name *" style={styles.input} value={name} />
-      <OptionSelector
-        disabled={loading}
-        label="Brand"
-        onAddCustomOption={async (value) => handleAddCustomOption('brand', value)}
-        onToggle={(value) => setSelectedBrands((current) => toggleOption(current, value))}
-        options={brandOptions}
-        selected={selectedBrands}
-      />
-      <OptionSelector
-        disabled={loading}
-        label="Clothing Type"
-        onAddCustomOption={async (value) => handleAddCustomOption('clothing_type', value)}
-        onToggle={(value) => setSelectedClothingTypes((current) => toggleOption(current, value))}
-        options={clothingTypeOptions}
-        selected={selectedClothingTypes}
-      />
-      <OptionSelector
-        disabled={loading}
-        label="Color"
-        onAddCustomOption={async (value) => handleAddCustomOption('color', value)}
-        onToggle={(value) => setSelectedColors((current) => toggleOption(current, value))}
-        options={colorOptions}
-        selected={selectedColors}
-      />
-      <TextInput editable={!loading} keyboardType="decimal-pad" onChangeText={setPriceAmount} placeholder="Price (e.g. 39.99)" style={styles.input} value={priceAmount} />
-      <TextInput editable={!loading} autoCapitalize="characters" maxLength={3} onChangeText={setPriceCurrency} placeholder="Currency (USD)" style={styles.input} value={priceCurrency} />
-      <OptionSelector
-        disabled={loading}
-        label="Materials"
-        onAddCustomOption={async (value) => handleAddCustomOption('material', value)}
-        onToggle={(value) => setSelectedMaterials((current) => toggleOption(current, value))}
-        options={materialOptions}
-        selected={selectedMaterials}
-      />
-      <OptionSelector
-        disabled={loading}
-        label="Seasons"
-        onAddCustomOption={async (value) => handleAddCustomOption('season', value)}
-        onToggle={(value) => setSelectedSeasons((current) => toggleOption(current, value))}
-        options={seasonOptions}
-        selected={selectedSeasons}
-      />
-      <TextInput editable={!loading} multiline onChangeText={setCustomFieldsText} placeholder='Custom Fields JSON, e.g. {"fit":"oversized"}' style={[styles.input, styles.textArea]} value={customFieldsText} />
-
-      <Text style={styles.sectionTitle}>Closets</Text>
-      {closets.length ? (
-        <View style={styles.closetList}>
-          {closets.map((closet) => {
-            const selected = selectedClosetIds.includes(closet.id);
-            return (
-              <Pressable
-                key={closet.id}
-              onPress={() => {
-                if (loading) return;
-                setSelectedClosetIds((current) => (selected ? current.filter((id) => id !== closet.id) : [...current, closet.id]));
+      {!primaryImage ? (
+        <View style={styles.imageStep}>
+          <Text style={styles.imageStepTitle}>Add A Main Image</Text>
+          <Text style={styles.imageStepBody}>Start by adding a photo of your item.</Text>
+          <View style={styles.row}>
+            <Pressable
+              disabled={loading}
+              onPress={async () => {
+                try {
+                  const image = await pickImageFromCamera();
+                  if (image) setPrimaryImage(image);
+                } catch (error) {
+                  Alert.alert('Camera error', error instanceof Error ? error.message : 'Could not open camera');
+                }
               }}
-                style={[styles.chip, selected && styles.chipSelected]}
-              >
-                <Text style={[styles.chipText, selected && styles.chipTextSelected]}>{closet.name}</Text>
-              </Pressable>
-            );
-          })}
+              style={[styles.secondary, loading && styles.disabled]}
+            >
+              <Text style={styles.secondaryText}>Camera</Text>
+            </Pressable>
+            <Pressable
+              disabled={loading}
+              onPress={async () => {
+                const image = await pickImageFromLibrary();
+                if (image) setPrimaryImage(image);
+              }}
+              style={[styles.secondary, loading && styles.disabled]}
+            >
+              <Text style={styles.secondaryText}>Album</Text>
+            </Pressable>
+          </View>
         </View>
-      ) : (
-        <Text style={styles.muted}>No closets yet. You can still save item with no closet.</Text>
-      )}
+      ) : null}
 
-      <Text style={styles.sectionTitle}>Extra Outfit Photos (optional)</Text>
-      <Pressable
-        disabled={loading}
-        onPress={async () => {
-          const image = await pickImageFromLibrary();
-          if (image) setExtraImages((current) => [...current, image]);
-        }}
-        style={[styles.secondarySingle, loading && styles.disabled]}
-      >
-        <Text style={styles.secondaryText}>Add Extra Photo</Text>
-      </Pressable>
-      <Text style={styles.fileText}>{extraImages.length ? `${extraImages.length} extra image(s) selected` : 'No extra images selected'}</Text>
-      {errorText ? <Text style={styles.errorText}>{errorText}</Text> : null}
+      {primaryImage ? (
+        <>
+          <Text style={styles.sectionTitle}>Item Photo</Text>
+          <Image source={{ uri: primaryImage.uri }} style={styles.mainImage} />
+          <View style={styles.row}>
+            <Pressable
+              disabled={loading}
+              onPress={async () => {
+                try {
+                  const image = await pickImageFromCamera();
+                  if (image) setPrimaryImage(image);
+                } catch (error) {
+                  Alert.alert('Camera error', error instanceof Error ? error.message : 'Could not open camera');
+                }
+              }}
+              style={[styles.secondary, loading && styles.disabled]}
+            >
+              <Text style={styles.secondaryText}>Retake</Text>
+            </Pressable>
+            <Pressable
+              disabled={loading}
+              onPress={async () => {
+                const image = await pickImageFromLibrary();
+                if (image) setPrimaryImage(image);
+              }}
+              style={[styles.secondary, loading && styles.disabled]}
+            >
+              <Text style={styles.secondaryText}>Replace</Text>
+            </Pressable>
+          </View>
 
-      <Pressable disabled={loading} onPress={handleSave} style={[styles.primary, loading && styles.disabled]}>
-        <Text style={styles.primaryText}>{loading ? 'Saving...' : 'Save Item'}</Text>
-      </Pressable>
+          <Text style={styles.sectionTitle}>Item Details</Text>
+          <TextInput editable={!loading} onChangeText={setName} placeholder="Item Name *" style={styles.input} value={name} />
+          <OptionSelector
+            disabled={loading}
+            label="Brand"
+            onAddCustomOption={async (value) => handleAddCustomOption('brand', value)}
+            onToggle={(value) => setSelectedBrands((current) => toggleOption(current, value))}
+            options={brandOptions}
+            selected={selectedBrands}
+          />
+          <OptionSelector
+            disabled={loading}
+            label="Clothing Type"
+            onAddCustomOption={async (value) => handleAddCustomOption('clothing_type', value)}
+            onToggle={(value) => setSelectedClothingTypes((current) => toggleOption(current, value))}
+            options={clothingTypeOptions}
+            selected={selectedClothingTypes}
+          />
+          <OptionSelector
+            disabled={loading}
+            label="Color"
+            onAddCustomOption={async (value) => handleAddCustomOption('color', value)}
+            onToggle={(value) => setSelectedColors((current) => toggleOption(current, value))}
+            options={colorOptions}
+            selected={selectedColors}
+          />
+          <TextInput editable={!loading} keyboardType="decimal-pad" onChangeText={setPriceAmount} placeholder="Price (e.g. 39.99)" style={styles.input} value={priceAmount} />
+          <TextInput editable={!loading} autoCapitalize="characters" maxLength={3} onChangeText={setPriceCurrency} placeholder="Currency (USD)" style={styles.input} value={priceCurrency} />
+          <OptionSelector
+            disabled={loading}
+            label="Materials"
+            onAddCustomOption={async (value) => handleAddCustomOption('material', value)}
+            onToggle={(value) => setSelectedMaterials((current) => toggleOption(current, value))}
+            options={materialOptions}
+            selected={selectedMaterials}
+          />
+          <OptionSelector
+            disabled={loading}
+            label="Seasons"
+            onAddCustomOption={async (value) => handleAddCustomOption('season', value)}
+            onToggle={(value) => setSelectedSeasons((current) => toggleOption(current, value))}
+            options={seasonOptions}
+            selected={selectedSeasons}
+          />
+          <TextInput editable={!loading} multiline onChangeText={setCustomFieldsText} placeholder='Custom Fields JSON, e.g. {"fit":"oversized"}' style={[styles.input, styles.textArea]} value={customFieldsText} />
+
+          <Text style={styles.sectionTitle}>Closets</Text>
+          {closets.length ? (
+            <View style={styles.closetList}>
+              {closets.map((closet) => {
+                const selected = selectedClosetIds.includes(closet.id);
+                return (
+                  <Pressable
+                    key={closet.id}
+                  onPress={() => {
+                    if (loading) return;
+                    setSelectedClosetIds((current) => (selected ? current.filter((id) => id !== closet.id) : [...current, closet.id]));
+                  }}
+                    style={[styles.chip, selected && styles.chipSelected]}
+                  >
+                    <Text style={[styles.chipText, selected && styles.chipTextSelected]}>{closet.name}</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          ) : (
+            <Text style={styles.muted}>No closets yet. You can still save item with no closet.</Text>
+          )}
+
+          <Text style={styles.sectionTitle}>Extra Outfit Photos (optional)</Text>
+          <Pressable
+            disabled={loading}
+            onPress={async () => {
+              const image = await pickImageFromLibrary();
+              if (image) setExtraImages((current) => [...current, image]);
+            }}
+            style={[styles.secondarySingle, loading && styles.disabled]}
+          >
+            <Text style={styles.secondaryText}>Add Extra Photo</Text>
+          </Pressable>
+          <Text style={styles.fileText}>{extraImages.length ? `${extraImages.length} extra image(s) selected` : 'No extra images selected'}</Text>
+          {errorText ? <Text style={styles.errorText}>{errorText}</Text> : null}
+
+          <Pressable disabled={loading} onPress={handleSave} style={[styles.primary, loading && styles.disabled]}>
+            <Text style={styles.primaryText}>{loading ? 'Saving...' : 'Save Item'}</Text>
+          </Pressable>
+        </>
+      ) : null}
     </ScrollView>
   );
 }
@@ -488,6 +525,25 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     gap: 12
+  },
+  imageStep: {
+    minHeight: 280,
+    justifyContent: 'center',
+    gap: 12
+  },
+  imageStepTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#17181b'
+  },
+  imageStepBody: {
+    color: '#676770'
+  },
+  mainImage: {
+    width: '100%',
+    aspectRatio: 4 / 5,
+    borderRadius: 16,
+    backgroundColor: '#f4f5f7'
   },
   secondary: {
     flex: 1,
