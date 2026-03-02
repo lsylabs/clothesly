@@ -58,9 +58,12 @@ export async function pickImageFromCamera() {
 
 export async function uploadImage(bucket: 'avatars' | 'closets' | 'items', path: string, localImage: LocalImage) {
   const fileResponse = await fetch(localImage.uri);
-  const blob = await fileResponse.blob();
+  const arrayBuffer = await fileResponse.arrayBuffer();
+  if (!arrayBuffer.byteLength) {
+    throw new Error('Selected image appears to be empty. Please choose a different photo.');
+  }
 
-  const { error } = await supabase.storage.from(bucket).upload(path, blob, {
+  const { error } = await supabase.storage.from(bucket).upload(path, arrayBuffer, {
     contentType: localImage.mimeType,
     upsert: false
   });
@@ -74,4 +77,13 @@ export async function deleteImages(bucket: 'avatars' | 'closets' | 'items', path
 
   const { error } = await supabase.storage.from(bucket).remove(uniquePaths);
   if (error) throw error;
+}
+
+export async function createSignedImageUrl(bucket: 'avatars' | 'closets' | 'items', path: string, expiresInSeconds = 60 * 10) {
+  const cleanPath = path.trim();
+  if (!cleanPath || cleanPath === 'pending') return null;
+
+  const { data, error } = await supabase.storage.from(bucket).createSignedUrl(cleanPath, expiresInSeconds);
+  if (error) throw error;
+  return data.signedUrl;
 }

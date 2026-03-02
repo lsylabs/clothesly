@@ -1,10 +1,11 @@
 import { useCallback, useMemo, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
 
 import { listClosets } from '../../services/closetService';
+import { createSignedImageUrl } from '../../services/mediaService';
 import { useAuth } from '../../services/AuthContext';
 import { deleteItem, deleteItemViaBackend, getItem, listItemClosetMappings, listItemImages } from '../../services/itemService';
 import type { Database } from '../../types/database';
@@ -30,6 +31,7 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
   const [item, setItem] = useState<ItemRow | null>(null);
   const [extraImages, setExtraImages] = useState<ItemImageRow[]>([]);
   const [selectedClosetNames, setSelectedClosetNames] = useState<string[]>([]);
+  const [primaryImageUrl, setPrimaryImageUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
   const [errorText, setErrorText] = useState<string | null>(null);
@@ -47,6 +49,8 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
 
       setItem(itemRow);
       setExtraImages(imageRows);
+      const signedUrl = await withRetry(() => createSignedImageUrl('items', itemRow.primary_image_path));
+      setPrimaryImageUrl(signedUrl);
 
       const closetLookup = new Map(closetRows.map((closet: ClosetRow) => [closet.id, closet.name]));
       const names = mappingRows
@@ -59,6 +63,7 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
       setItem(null);
       setExtraImages([]);
       setSelectedClosetNames([]);
+      setPrimaryImageUrl(null);
     } finally {
       setLoading(false);
     }
@@ -116,9 +121,13 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
       {!loading && item ? (
         <>
           <Text style={styles.sectionTitle}>Main Image</Text>
-          <View style={styles.input}>
-            <Text style={styles.valueText}>{item.primary_image_path.split('/').pop() || item.primary_image_path}</Text>
-          </View>
+          {primaryImageUrl ? (
+            <Image resizeMode="cover" source={{ uri: primaryImageUrl }} style={styles.mainImage} />
+          ) : (
+            <View style={styles.input}>
+              <Text style={styles.valueMuted}>No image available</Text>
+            </View>
+          )}
 
           <Text style={styles.sectionTitle}>Metadata</Text>
           <ReadonlyField label="Item Name" value={item.name} />
@@ -142,15 +151,6 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
 
           <Text style={styles.sectionTitle}>Extra Outfit Photos</Text>
           <ReadonlyField label="Count" value={`${extraImages.length}`} />
-          {extraImages.length ? (
-            <View style={styles.optionList}>
-              {extraImages.map((image) => (
-                <View key={image.id} style={styles.chip}>
-                  <Text style={styles.chipText}>{image.image_path.split('/').pop() || image.image_path}</Text>
-                </View>
-              ))}
-            </View>
-          ) : null}
 
           {errorText ? <Text style={styles.errorText}>{errorText}</Text> : null}
 
@@ -263,6 +263,12 @@ const styles = StyleSheet.create({
   },
   textArea: {
     minHeight: 90
+  },
+  mainImage: {
+    width: '100%',
+    aspectRatio: 4 / 5,
+    borderRadius: 12,
+    backgroundColor: '#e8e2d7'
   },
   valueText: {
     color: '#2d2d2d'

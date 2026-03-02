@@ -379,7 +379,7 @@ export default function AddItemScreen({ navigation }: Props) {
           <Text style={styles.secondaryText}>Album</Text>
         </Pressable>
       </View>
-      <Text style={styles.fileText}>{primaryImage ? `Selected: ${primaryImage.uri.split('/').pop()}` : 'No image selected'}</Text>
+      <Text style={styles.fileText}>{primaryImage ? 'Main image selected' : 'No image selected'}</Text>
 
       <Text style={styles.sectionTitle}>Metadata</Text>
       <TextInput editable={!loading} onChangeText={setName} placeholder="Item Name *" style={styles.input} value={name} />

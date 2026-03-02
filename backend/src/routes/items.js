@@ -226,26 +226,38 @@ router.delete('/v1/items/:id', requireAuth, async (req, res) => {
       .map((path) => path.trim());
 
     const uniqueStoragePaths = Array.from(new Set(storagePaths));
-    const deletedStoragePaths = [];
-    const failedStorageDeletes = [];
+    let deletedStoragePaths = [];
+    let failedStorageDeletes = [];
 
-    for (const path of uniqueStoragePaths) {
-      const encodedPath = encodeURIComponent(path);
-      const deleteStorageUrl = `${config.supabaseUrl}/storage/v1/object/items/${encodedPath}`;
+    if (uniqueStoragePaths.length) {
+      const deleteStorageUrl = `${config.supabaseUrl}/storage/v1/object/items`;
       const { response: deleteStorageResponse, body: deleteStorageBody } = await fetchJson(deleteStorageUrl, {
         method: 'DELETE',
-        headers
+        headers,
+        body: JSON.stringify({ prefixes: uniqueStoragePaths })
       });
 
-      if (deleteStorageResponse.ok) {
-        deletedStoragePaths.push(path);
-        continue;
+      if (!deleteStorageResponse.ok) {
+        failedStorageDeletes = [
+          {
+            paths: uniqueStoragePaths,
+            status: deleteStorageResponse.status,
+            body: deleteStorageBody
+          }
+        ];
+      } else {
+        deletedStoragePaths = uniqueStoragePaths;
       }
+    }
 
-      failedStorageDeletes.push({
-        path,
-        status: deleteStorageResponse.status,
-        body: deleteStorageBody
+    if (failedStorageDeletes.length > 0) {
+      return res.status(502).json({
+        error: 'Failed to delete one or more storage objects',
+        storage: {
+          attempted: uniqueStoragePaths.length,
+          deleted: deletedStoragePaths.length,
+          failed: failedStorageDeletes
+        }
       });
     }
 
