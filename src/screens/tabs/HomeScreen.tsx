@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { useAuth } from '../../services/AuthContext';
+import { warmSignedImageUrls } from '../../services/imageCacheService';
 import { prefetchWardrobeData } from '../../services/wardrobeDataService';
 
 export default function HomeScreen() {
@@ -10,7 +11,13 @@ export default function HomeScreen() {
 
   useEffect(() => {
     if (!userId) return;
-    void prefetchWardrobeData(userId).catch(() => undefined);
+    void prefetchWardrobeData(userId)
+      .then((data) => {
+        const itemPaths = data.items.map((item) => item.primary_image_path);
+        const closetCoverPaths = data.closets.map((closet) => closet.cover_image_path || '').filter(Boolean) as string[];
+        return Promise.all([warmSignedImageUrls('items', itemPaths), warmSignedImageUrls('closets', closetCoverPaths)]);
+      })
+      .catch(() => undefined);
   }, [userId]);
 
   return (

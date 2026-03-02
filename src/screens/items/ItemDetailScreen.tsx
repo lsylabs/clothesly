@@ -5,8 +5,8 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
 
 import { listClosets } from '../../services/closetService';
-import { createSignedImageUrl } from '../../services/mediaService';
 import { useAuth } from '../../services/AuthContext';
+import { getCachedSignedImageUrl } from '../../services/imageCacheService';
 import { deleteItem, deleteItemViaBackend, getItem, listItemClosetMappings, listItemImages } from '../../services/itemService';
 import { refreshWardrobeData } from '../../services/wardrobeDataService';
 import type { Database } from '../../types/database';
@@ -50,7 +50,7 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
 
       setItem(itemRow);
       setExtraImages(imageRows);
-      const signedUrl = await withRetry(() => createSignedImageUrl('items', itemRow.primary_image_path));
+      const signedUrl = await withRetry(() => getCachedSignedImageUrl('items', itemRow.primary_image_path));
       setPrimaryImageUrl(signedUrl);
 
       const closetLookup = new Map(closetRows.map((closet: ClosetRow) => [closet.id, closet.name]));

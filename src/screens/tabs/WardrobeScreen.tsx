@@ -5,7 +5,7 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { useAuth } from '../../services/AuthContext';
-import { createSignedImageUrl } from '../../services/mediaService';
+import { getCachedSignedImageUrl, getCachedSignedImageUrlSync } from '../../services/imageCacheService';
 import { fetchWardrobeData, getWardrobeDataCache } from '../../services/wardrobeDataService';
 import type { Database } from '../../types/database';
 import type { AppStackParamList } from '../../types/navigation';
@@ -97,10 +97,19 @@ export default function WardrobeScreen() {
         return;
       }
 
+      const immediateFromCache = items.reduce<Record<string, string>>((acc, item) => {
+        const cached = getCachedSignedImageUrlSync('items', item.primary_image_path);
+        if (cached) acc[item.id] = cached;
+        return acc;
+      }, {});
+      if (active && Object.keys(immediateFromCache).length) {
+        setItemImageUrls((current) => ({ ...current, ...immediateFromCache }));
+      }
+
       const entries = await Promise.all(
         items.map(async (item) => {
           try {
-            const url = await createSignedImageUrl('items', item.primary_image_path);
+            const url = await getCachedSignedImageUrl('items', item.primary_image_path);
             return [item.id, url ?? ''] as const;
           } catch {
             return [item.id, ''] as const;
@@ -113,7 +122,7 @@ export default function WardrobeScreen() {
         entries.reduce<Record<string, string>>((acc, [id, url]) => {
           if (url) acc[id] = url;
           return acc;
-        }, {})
+        }, { ...immediateFromCache })
       );
     };
 
@@ -132,11 +141,21 @@ export default function WardrobeScreen() {
         return;
       }
 
+      const immediateFromCache = closets.reduce<Record<string, string>>((acc, closet) => {
+        if (!closet.cover_image_path) return acc;
+        const cached = getCachedSignedImageUrlSync('closets', closet.cover_image_path);
+        if (cached) acc[closet.id] = cached;
+        return acc;
+      }, {});
+      if (active && Object.keys(immediateFromCache).length) {
+        setClosetCoverUrls((current) => ({ ...current, ...immediateFromCache }));
+      }
+
       const entries = await Promise.all(
         closets.map(async (closet) => {
           if (!closet.cover_image_path) return [closet.id, ''] as const;
           try {
-            const url = await createSignedImageUrl('closets', closet.cover_image_path);
+            const url = await getCachedSignedImageUrl('closets', closet.cover_image_path);
             return [closet.id, url ?? ''] as const;
           } catch {
             return [closet.id, ''] as const;
@@ -149,7 +168,7 @@ export default function WardrobeScreen() {
         entries.reduce<Record<string, string>>((acc, [id, url]) => {
           if (url) acc[id] = url;
           return acc;
-        }, {})
+        }, { ...immediateFromCache })
       );
     };
 
