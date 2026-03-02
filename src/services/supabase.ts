@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { NativeModules } from 'react-native';
+import { NativeModules, Platform } from 'react-native';
 
 import { env } from '../config/env';
 import type { Database } from '../types/database';
@@ -18,14 +18,42 @@ const fallbackStorage = {
 };
 
 const hasNativeAsyncStorage = Boolean((NativeModules as Record<string, unknown>).RNCAsyncStorage);
+const hasWindowLocalStorage = typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
 
-const authStorage = hasNativeAsyncStorage
-  ? AsyncStorage
-  : {
-      getItem: fallbackStorage.getItem,
-      setItem: fallbackStorage.setItem,
-      removeItem: fallbackStorage.removeItem
-    };
+const webStorage = {
+  getItem: async (key: string) => {
+    try {
+      return window.localStorage.getItem(key);
+    } catch {
+      return null;
+    }
+  },
+  setItem: async (key: string, value: string) => {
+    try {
+      window.localStorage.setItem(key, value);
+    } catch {
+      memoryStorage.set(key, value);
+    }
+  },
+  removeItem: async (key: string) => {
+    try {
+      window.localStorage.removeItem(key);
+    } catch {
+      memoryStorage.delete(key);
+    }
+  }
+};
+
+const authStorage =
+  Platform.OS === 'web' && hasWindowLocalStorage
+    ? webStorage
+    : hasNativeAsyncStorage
+      ? AsyncStorage
+      : {
+          getItem: fallbackStorage.getItem,
+          setItem: fallbackStorage.setItem,
+          removeItem: fallbackStorage.removeItem
+        };
 
 export const supabase = createClient<Database>(
   env.supabaseUrl || 'https://placeholder.supabase.co',
