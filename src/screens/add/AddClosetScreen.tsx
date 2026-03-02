@@ -8,6 +8,7 @@ import { createCloset, updateClosetCover } from '../../services/closetService';
 import type { LocalImage } from '../../services/mediaService';
 import { pickImageFromCamera, pickImageFromLibrary, uploadImage } from '../../services/mediaService';
 import { buildClosetCoverPath } from '../../services/storagePaths';
+import { refreshWardrobeData } from '../../services/wardrobeDataService';
 import type { AppStackParamList } from '../../types/navigation';
 import { withRetry } from '../../utils/retry';
 import { validateClosetName } from '../../utils/validation';
@@ -46,6 +47,7 @@ export default function AddClosetScreen({ navigation }: Props) {
         await withRetry(() => uploadImage('closets', path, coverImage));
         await withRetry(() => updateClosetCover(closet.id, path));
       }
+      await refreshWardrobeData(userId).catch(() => undefined);
 
       Alert.alert('Closet created', 'Your closet is ready.');
       navigation.goBack();

@@ -8,6 +8,7 @@ import { listClosets } from '../../services/closetService';
 import { createSignedImageUrl } from '../../services/mediaService';
 import { useAuth } from '../../services/AuthContext';
 import { deleteItem, deleteItemViaBackend, getItem, listItemClosetMappings, listItemImages } from '../../services/itemService';
+import { refreshWardrobeData } from '../../services/wardrobeDataService';
 import type { Database } from '../../types/database';
 import type { AppStackParamList } from '../../types/navigation';
 import { withRetry } from '../../utils/retry';
@@ -91,6 +92,9 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
       } else {
         // Fallback if auth context is stale; DB cascade will still remove related rows.
         await withRetry(() => deleteItem(item.id));
+      }
+      if (session?.user.id) {
+        await refreshWardrobeData(session.user.id).catch(() => undefined);
       }
       Alert.alert('Item deleted', 'This item was removed from your wardrobe.');
       navigation.goBack();

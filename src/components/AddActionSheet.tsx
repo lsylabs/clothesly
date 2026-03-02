@@ -34,39 +34,40 @@ export default function AddActionSheet({ visible, onClose, onAddItem, onCreateCl
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.35)',
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
     justifyContent: 'flex-end'
   },
   sheet: {
-    backgroundColor: '#fffdf7',
+    backgroundColor: '#ecebed',
     paddingHorizontal: 18,
     paddingTop: 20,
-    borderTopLeftRadius: 18,
-    borderTopRightRadius: 18,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
     gap: 10
   },
   heading: {
-    fontSize: 17,
+    fontSize: 20,
     fontWeight: '700',
-    color: '#2a2a2a',
+    color: '#17181b',
     marginBottom: 6
   },
   action: {
-    backgroundColor: '#eff4f1',
+    backgroundColor: '#141518',
     paddingVertical: 14,
-    borderRadius: 10,
+    borderRadius: 14,
     alignItems: 'center'
   },
   actionText: {
-    color: '#1f4d3d',
+    color: '#ffffff',
     fontWeight: '600'
   },
   cancel: {
     paddingVertical: 14,
-    borderRadius: 10,
+    borderRadius: 14,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#d7d2c8',
+    borderWidth: 2,
+    borderColor: '#c8c7cb',
+    backgroundColor: '#f0f0f1',
     marginTop: 4
   },
   cancelText: {

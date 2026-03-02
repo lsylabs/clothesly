@@ -1,67 +1,104 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-import { listClosets } from '../../services/closetService';
-import { listItemClosetMappings, listItems } from '../../services/itemService';
+import { useAuth } from '../../services/AuthContext';
+import { fetchWardrobeData, getWardrobeDataCache } from '../../services/wardrobeDataService';
 import type { Database } from '../../types/database';
 import type { AppStackParamList } from '../../types/navigation';
-import { withRetry } from '../../utils/retry';
 
 type ViewMode = 'closets' | 'all';
 type ClosetRow = Database['public']['Tables']['closets']['Row'];
 type ItemRow = Database['public']['Tables']['clothing_items']['Row'];
 type MappingRow = Database['public']['Tables']['clothing_item_closets']['Row'];
+const REFRESH_STALE_MS = 30_000;
 
 export default function WardrobeScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>();
+  const { session } = useAuth();
+  const userId = session?.user.id;
 
   const [viewMode, setViewMode] = useState<ViewMode>('closets');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [closets, setClosets] = useState<ClosetRow[]>([]);
   const [items, setItems] = useState<ItemRow[]>([]);
   const [mappings, setMappings] = useState<MappingRow[]>([]);
   const [selectedClosetId, setSelectedClosetId] = useState<string | null>(null);
   const [errorText, setErrorText] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
+  const [lastLoadedAt, setLastLoadedAt] = useState<number | null>(null);
 
-  const loadData = useCallback(async () => {
-    setLoading(true);
-    setErrorText(null);
-    try {
-      const [closetRows, itemRows, mappingRows] = await Promise.all([
-        withRetry(() => listClosets()),
-        withRetry(() => listItems()),
-        withRetry(() => listItemClosetMappings())
-      ]);
-      setClosets(closetRows);
-      setItems(itemRows);
-      setMappings(mappingRows);
-      if (closetRows.length && !selectedClosetId) {
-        setSelectedClosetId(closetRows[0].id);
+  const applyWardrobeData = useCallback(
+    (data: { closets: ClosetRow[]; items: ItemRow[]; mappings: MappingRow[]; loadedAt: number }) => {
+      setClosets(data.closets);
+      setItems(data.items);
+      setMappings(data.mappings);
+      if (data.closets.length && !selectedClosetId) {
+        setSelectedClosetId(data.closets[0].id);
       }
-      if (!closetRows.length) {
+      if (!data.closets.length) {
         setSelectedClosetId(null);
       }
+      setLastLoadedAt(data.loadedAt);
+      setHasLoadedOnce(true);
+    },
+    [selectedClosetId]
+  );
+
+  const loadData = useCallback(async (options?: { blocking?: boolean }) => {
+    const blocking = Boolean(options?.blocking);
+    if (blocking) setLoading(true);
+    setErrorText(null);
+    try {
+      if (!userId) {
+        setClosets([]);
+        setItems([]);
+        setMappings([]);
+        setSelectedClosetId(null);
+        setLastLoadedAt(null);
+        setHasLoadedOnce(true);
+        return;
+      }
+      const data = await fetchWardrobeData(userId);
+      applyWardrobeData(data);
     } catch (error) {
       setErrorText(error instanceof Error ? error.message : 'Unknown error');
     } finally {
-      setLoading(false);
+      if (blocking) setLoading(false);
     }
-  }, [selectedClosetId]);
+  }, [applyWardrobeData, userId]);
+
+  const hydrateFromCache = useCallback(() => {
+    if (!userId) return false;
+    const cached = getWardrobeDataCache(userId);
+    if (!cached) return false;
+    applyWardrobeData(cached);
+    return true;
+  }, [applyWardrobeData, userId]);
+
+  useEffect(() => {
+    if (!hasLoadedOnce) {
+      hydrateFromCache();
+    }
+  }, [hasLoadedOnce, hydrateFromCache]);
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
-    await loadData();
+    await loadData({ blocking: false });
     setRefreshing(false);
   }, [loadData]);
 
   useFocusEffect(
     useCallback(() => {
-      loadData();
-    }, [loadData])
+      const hydrated = hydrateFromCache();
+      const shouldRefresh = !lastLoadedAt || Date.now() - lastLoadedAt > REFRESH_STALE_MS;
+      if (shouldRefresh) {
+        void loadData({ blocking: !hasLoadedOnce && !hydrated });
+      }
+    }, [hasLoadedOnce, hydrateFromCache, lastLoadedAt, loadData])
   );
 
   const selectedClosetItems = useMemo(() => {
@@ -95,22 +132,23 @@ export default function WardrobeScreen() {
         </Pressable>
       </View>
 
-      {loading ? (
+      {loading && !hasLoadedOnce ? (
         <View style={styles.centered}>
           <ActivityIndicator color="#17181b" />
         </View>
       ) : null}
+      {loading && hasLoadedOnce ? <Text style={styles.syncingText}>Syncing wardrobe...</Text> : null}
 
       {errorText ? (
         <View style={styles.errorCard}>
           <Text style={styles.errorText}>{errorText}</Text>
-          <Pressable onPress={loadData} style={styles.retryButton}>
+          <Pressable onPress={() => void loadData({ blocking: !hasLoadedOnce })} style={styles.retryButton}>
             <Text style={styles.retryButtonText}>Retry</Text>
           </Pressable>
         </View>
       ) : null}
 
-      {!loading && viewMode === 'all' ? (
+      {viewMode === 'all' ? (
         <>
           <Text style={styles.sectionTitle}>All Items ({items.length})</Text>
           {items.length ? (
@@ -121,7 +159,7 @@ export default function WardrobeScreen() {
         </>
       ) : null}
 
-      {!loading && viewMode === 'closets' ? (
+      {viewMode === 'closets' ? (
         <>
           <Text style={styles.sectionTitle}>Closets ({closets.length})</Text>
           {closets.length ? (
@@ -238,6 +276,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 16
+  },
+  syncingText: {
+    color: '#6a6a72',
+    fontWeight: '500'
   },
   sectionTitle: {
     marginTop: 8,

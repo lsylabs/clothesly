@@ -10,6 +10,7 @@ import { createItemViaBackend, deleteItem, deleteItemViaBackend, finalizeItemVia
 import type { LocalImage } from '../../services/mediaService';
 import { pickImageFromCamera, pickImageFromLibrary, uploadImage } from '../../services/mediaService';
 import { buildItemExtraImagePath, buildItemPrimaryImagePath } from '../../services/storagePaths';
+import { refreshWardrobeData } from '../../services/wardrobeDataService';
 import type { Database } from '../../types/database';
 import type { AppStackParamList } from '../../types/navigation';
 import { withRetry } from '../../utils/retry';
@@ -334,6 +335,7 @@ export default function AddItemScreen({ navigation }: Props) {
           closetIds: selectedClosetIds
         })
       );
+      await refreshWardrobeData(userId).catch(() => undefined);
 
       Alert.alert('Item added', 'Your wardrobe item has been saved.');
       navigation.goBack();

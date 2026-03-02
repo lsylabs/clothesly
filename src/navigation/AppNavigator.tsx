@@ -10,7 +10,14 @@ const Stack = createNativeStackNavigator<AppStackParamList>();
 
 export default function AppNavigator() {
   return (
-    <Stack.Navigator>
+    <Stack.Navigator
+      screenOptions={{
+        headerStyle: { backgroundColor: '#ecebed' },
+        headerTitleStyle: { color: '#17181b', fontWeight: '700' },
+        headerTintColor: '#17181b',
+        contentStyle: { backgroundColor: '#ecebed' }
+      }}
+    >
       <Stack.Screen component={AppTabs} name="Tabs" options={{ headerShown: false }} />
       <Stack.Screen component={AddItemScreen} name="AddItem" options={{ presentation: 'modal', title: 'Add Item' }} />
       <Stack.Screen component={AddClosetScreen} name="AddCloset" options={{ presentation: 'modal', title: 'Create Closet' }} />

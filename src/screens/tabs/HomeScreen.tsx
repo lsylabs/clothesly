@@ -1,6 +1,18 @@
+import { useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { useAuth } from '../../services/AuthContext';
+import { prefetchWardrobeData } from '../../services/wardrobeDataService';
+
 export default function HomeScreen() {
+  const { session } = useAuth();
+  const userId = session?.user.id;
+
+  useEffect(() => {
+    if (!userId) return;
+    void prefetchWardrobeData(userId).catch(() => undefined);
+  }, [userId]);
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Home</Text>
