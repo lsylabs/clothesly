@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end'
   },
   sheet: {
-    backgroundColor: '#ecebed',
+    backgroundColor: '#ffffff',
     paddingHorizontal: 18,
     paddingTop: 20,
     borderTopLeftRadius: 28,
@@ -66,8 +66,8 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#c8c7cb',
-    backgroundColor: '#f0f0f1',
+    borderColor: '#d9dce3',
+    backgroundColor: '#ffffff',
     marginTop: 4
   },
   cancelText: {

@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 24,
     justifyContent: 'center',
-    backgroundColor: '#ecebed'
+    backgroundColor: '#ffffff'
   },
   title: {
     fontSize: 36,
@@ -128,13 +128,13 @@ const styles = StyleSheet.create({
     marginBottom: 24
   },
   input: {
-    backgroundColor: '#f0f0f1',
+    backgroundColor: '#ffffff',
     borderRadius: 14,
     paddingHorizontal: 14,
     paddingVertical: 13,
     marginBottom: 12,
     borderWidth: 1.5,
-    borderColor: '#c8c7cb'
+    borderColor: '#d9dce3'
   },
   button: {
     backgroundColor: '#141518',
@@ -155,8 +155,8 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#c8c7cb',
-    backgroundColor: '#f0f0f1',
+    borderColor: '#d9dce3',
+    backgroundColor: '#ffffff',
     marginTop: 12
   },
   secondaryButtonText: {

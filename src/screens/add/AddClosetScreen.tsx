@@ -103,7 +103,7 @@ export default function AddClosetScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     padding: 16,
-    backgroundColor: '#ecebed',
+    backgroundColor: '#ffffff',
     gap: 12
   },
   label: {
@@ -113,9 +113,9 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1.5,
-    borderColor: '#c7c6ca',
+    borderColor: '#d9dce3',
     borderRadius: 14,
-    backgroundColor: '#f0f0f1',
+    backgroundColor: '#ffffff',
     paddingHorizontal: 12,
     paddingVertical: 12
   },
@@ -126,11 +126,11 @@ const styles = StyleSheet.create({
   secondary: {
     flex: 1,
     borderWidth: 2,
-    borderColor: '#c7c6ca',
+    borderColor: '#d9dce3',
     borderRadius: 14,
     paddingVertical: 12,
     alignItems: 'center',
-    backgroundColor: '#f0f0f1'
+    backgroundColor: '#ffffff'
   },
   secondaryText: {
     color: '#24252a',

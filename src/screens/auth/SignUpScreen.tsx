@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 24,
     justifyContent: 'center',
-    backgroundColor: '#ecebed'
+    backgroundColor: '#ffffff'
   },
   title: {
     fontSize: 36,
@@ -97,13 +97,13 @@ const styles = StyleSheet.create({
     marginBottom: 24
   },
   input: {
-    backgroundColor: '#f0f0f1',
+    backgroundColor: '#ffffff',
     borderRadius: 14,
     paddingHorizontal: 14,
     paddingVertical: 13,
     marginBottom: 12,
     borderWidth: 1.5,
-    borderColor: '#c8c7cb'
+    borderColor: '#d9dce3'
   },
   button: {
     backgroundColor: '#141518',

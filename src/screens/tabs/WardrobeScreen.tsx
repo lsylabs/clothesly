@@ -294,7 +294,7 @@ function ItemGrid({
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#ecebed'
+    backgroundColor: '#ffffff'
   },
   header: {
     paddingHorizontal: 16,
@@ -303,7 +303,7 @@ const styles = StyleSheet.create({
     gap: 12
   },
   container: {
-    backgroundColor: '#ecebed',
+    backgroundColor: '#ffffff',
     padding: 16,
     gap: 12
   },
@@ -314,7 +314,7 @@ const styles = StyleSheet.create({
     color: '#16171a'
   },
   segment: {
-    backgroundColor: '#e4e4e6',
+    backgroundColor: '#f7f8fa',
     borderRadius: 20,
     padding: 5,
     flexDirection: 'row'
@@ -326,7 +326,7 @@ const styles = StyleSheet.create({
     borderRadius: 8
   },
   segmentButtonActive: {
-    backgroundColor: '#f2f2f3'
+    backgroundColor: '#ffffff'
   },
   segmentText: {
     color: '#6a6a71',
@@ -358,14 +358,14 @@ const styles = StyleSheet.create({
   closetCard: {
     width: '48%',
     borderRadius: 16,
-    backgroundColor: '#f0f0f1',
+    backgroundColor: '#ffffff',
     borderWidth: 1,
-    borderColor: '#e5e4e7',
+    borderColor: '#e6e8ec',
     padding: 14
   },
   closetCardSelected: {
-    backgroundColor: '#d8d8df',
-    borderColor: '#cac9cf'
+    backgroundColor: '#ffffff',
+    borderColor: '#d9dce3'
   },
   closetName: {
     fontWeight: '700',
@@ -391,7 +391,7 @@ const styles = StyleSheet.create({
     width: '100%',
     aspectRatio: 1,
     borderRadius: 14,
-    backgroundColor: '#e2e2e5'
+    backgroundColor: '#f6f7f9'
   },
   itemImagePlaceholder: {
     alignItems: 'center',
@@ -403,8 +403,8 @@ const styles = StyleSheet.create({
   },
   addTile: {
     borderStyle: 'dashed',
-    borderColor: '#c8c8ce',
-    backgroundColor: '#f4f4f6',
+    borderColor: '#d9dce3',
+    backgroundColor: '#ffffff',
     alignItems: 'center',
     justifyContent: 'center'
   },

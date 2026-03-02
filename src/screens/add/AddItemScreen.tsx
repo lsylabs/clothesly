@@ -476,7 +476,7 @@ export default function AddItemScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     padding: 16,
-    backgroundColor: '#ecebed',
+    backgroundColor: '#ffffff',
     gap: 12
   },
   sectionTitle: {
@@ -492,19 +492,19 @@ const styles = StyleSheet.create({
   secondary: {
     flex: 1,
     borderWidth: 2,
-    borderColor: '#c8c7cb',
+    borderColor: '#d9dce3',
     borderRadius: 14,
     paddingVertical: 12,
     alignItems: 'center',
-    backgroundColor: '#f0f0f1'
+    backgroundColor: '#ffffff'
   },
   secondarySingle: {
     borderWidth: 2,
-    borderColor: '#c8c7cb',
+    borderColor: '#d9dce3',
     borderRadius: 14,
     paddingVertical: 12,
     alignItems: 'center',
-    backgroundColor: '#f0f0f1'
+    backgroundColor: '#ffffff'
   },
   secondaryText: {
     color: '#232429',
@@ -515,9 +515,9 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1.5,
-    borderColor: '#c8c7cb',
+    borderColor: '#d9dce3',
     borderRadius: 14,
-    backgroundColor: '#f0f0f1',
+    backgroundColor: '#ffffff',
     paddingHorizontal: 12,
     paddingVertical: 12
   },
@@ -541,11 +541,11 @@ const styles = StyleSheet.create({
   },
   addOptionButton: {
     borderWidth: 1.5,
-    borderColor: '#c8c7cb',
+    borderColor: '#d9dce3',
     borderRadius: 10,
     paddingHorizontal: 10,
     paddingVertical: 5,
-    backgroundColor: '#f0f0f1'
+    backgroundColor: '#ffffff'
   },
   addOptionButtonText: {
     color: '#232429',
@@ -561,11 +561,11 @@ const styles = StyleSheet.create({
   },
   addOptionAction: {
     borderWidth: 1,
-    borderColor: '#c8c7cb',
+    borderColor: '#d9dce3',
     borderRadius: 10,
     paddingHorizontal: 10,
     paddingVertical: 8,
-    backgroundColor: '#f0f0f1'
+    backgroundColor: '#ffffff'
   },
   addOptionConfirm: {
     borderColor: '#9f9ea4'
@@ -586,11 +586,11 @@ const styles = StyleSheet.create({
   },
   chip: {
     borderWidth: 1.5,
-    borderColor: '#c8c7cb',
+    borderColor: '#d9dce3',
     borderRadius: 20,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    backgroundColor: '#f0f0f1'
+    backgroundColor: '#ffffff'
   },
   chipSelected: {
     backgroundColor: '#d9d8de',

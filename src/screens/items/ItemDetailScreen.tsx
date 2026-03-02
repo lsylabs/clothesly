@@ -211,7 +211,7 @@ function OptionChips({ label, values }: { label: string; values: string[] }) {
 const styles = StyleSheet.create({
   container: {
     padding: 16,
-    backgroundColor: '#ecebed',
+    backgroundColor: '#ffffff',
     gap: 12
   },
   centered: {
@@ -240,11 +240,11 @@ const styles = StyleSheet.create({
   },
   chip: {
     borderWidth: 1.5,
-    borderColor: '#c8c7cb',
+    borderColor: '#d9dce3',
     borderRadius: 20,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    backgroundColor: '#f0f0f1'
+    backgroundColor: '#ffffff'
   },
   chipSelected: {
     backgroundColor: '#d9d8de',
@@ -259,9 +259,9 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1.5,
-    borderColor: '#c8c7cb',
+    borderColor: '#d9dce3',
     borderRadius: 14,
-    backgroundColor: '#f0f0f1',
+    backgroundColor: '#ffffff',
     paddingHorizontal: 12,
     paddingVertical: 12
   },
@@ -282,11 +282,11 @@ const styles = StyleSheet.create({
   },
   secondarySingle: {
     borderWidth: 2,
-    borderColor: '#c8c7cb',
+    borderColor: '#d9dce3',
     borderRadius: 14,
     paddingVertical: 12,
     alignItems: 'center',
-    backgroundColor: '#f0f0f1'
+    backgroundColor: '#ffffff'
   },
   secondaryText: {
     color: '#222327',

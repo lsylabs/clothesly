@@ -12,7 +12,7 @@ export default function OutfitsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ecebed',
+    backgroundColor: '#ffffff',
     padding: 20
   },
   title: {
@@ -28,8 +28,8 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     borderRadius: 20,
     padding: 18,
-    backgroundColor: '#f0f0f1',
+    backgroundColor: '#ffffff',
     borderWidth: 1,
-    borderColor: '#e5e4e7'
+    borderColor: '#e6e8ec'
   }
 });
