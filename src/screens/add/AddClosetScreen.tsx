@@ -101,46 +101,47 @@ export default function AddClosetScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     padding: 16,
-    backgroundColor: '#f5f1e8',
-    gap: 10
+    backgroundColor: '#ecebed',
+    gap: 12
   },
   label: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '600',
-    color: '#2b2b2b'
+    color: '#1d1e22'
   },
   input: {
-    borderWidth: 1,
-    borderColor: '#d6d0c5',
-    borderRadius: 10,
-    backgroundColor: '#fff',
+    borderWidth: 1.5,
+    borderColor: '#c7c6ca',
+    borderRadius: 14,
+    backgroundColor: '#f0f0f1',
     paddingHorizontal: 12,
-    paddingVertical: 10
+    paddingVertical: 12
   },
   row: {
     flexDirection: 'row',
-    gap: 10
+    gap: 12
   },
   secondary: {
     flex: 1,
-    borderWidth: 1,
-    borderColor: '#1f4d3d',
-    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#c7c6ca',
+    borderRadius: 14,
     paddingVertical: 12,
-    alignItems: 'center'
+    alignItems: 'center',
+    backgroundColor: '#f0f0f1'
   },
   secondaryText: {
-    color: '#1f4d3d',
+    color: '#24252a',
     fontWeight: '600'
   },
   fileText: {
-    color: '#555'
+    color: '#676770'
   },
   primary: {
-    backgroundColor: '#1f4d3d',
-    borderRadius: 10,
+    backgroundColor: '#141518',
+    borderRadius: 14,
     alignItems: 'center',
-    paddingVertical: 13,
+    paddingVertical: 14,
     marginTop: 8
   },
   primaryText: {
@@ -151,7 +152,7 @@ const styles = StyleSheet.create({
     opacity: 0.65
   },
   errorText: {
-    color: '#8f2424',
+    color: '#a04f4f',
     fontWeight: '600'
   }
 });

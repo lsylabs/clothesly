@@ -29,31 +29,36 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f1e8',
-    padding: 20,
-    justifyContent: 'center'
+    backgroundColor: '#ecebed',
+    padding: 20
   },
   title: {
-    fontSize: 28,
+    fontSize: 42,
     fontWeight: '700',
-    color: '#222'
+    letterSpacing: -0.8,
+    color: '#16171a'
   },
   body: {
-    marginTop: 10,
-    color: '#444',
-    fontSize: 15,
-    lineHeight: 22
+    marginTop: 14,
+    color: '#45464c',
+    fontSize: 16,
+    lineHeight: 24,
+    borderRadius: 20,
+    padding: 18,
+    backgroundColor: '#f0f0f1',
+    borderWidth: 1,
+    borderColor: '#e5e4e7'
   },
   warning: {
     marginTop: 10,
-    color: '#7f2a2a'
+    color: '#9e4c4c'
   },
   signOut: {
     marginTop: 16,
-    paddingVertical: 12,
-    borderRadius: 10,
+    paddingVertical: 14,
+    borderRadius: 14,
     alignItems: 'center',
-    backgroundColor: '#1f4d3d'
+    backgroundColor: '#141518'
   },
   signOutText: {
     color: '#fff',

@@ -73,7 +73,7 @@ export default function WardrobeScreen() {
   return (
     <ScrollView
       contentContainerStyle={styles.container}
-      refreshControl={<RefreshControl onRefresh={handleRefresh} refreshing={refreshing} tintColor="#1f4d3d" />}
+      refreshControl={<RefreshControl onRefresh={handleRefresh} refreshing={refreshing} tintColor="#17181b" />}
     >
       <Text style={styles.title}>Wardrobe</Text>
 
@@ -97,7 +97,7 @@ export default function WardrobeScreen() {
 
       {loading ? (
         <View style={styles.centered}>
-          <ActivityIndicator color="#1f4d3d" />
+          <ActivityIndicator color="#17181b" />
         </View>
       ) : null}
 
@@ -174,25 +174,26 @@ function ItemCard({ item, onPress }: { item: ItemRow; onPress: () => void }) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#f5f1e8',
+    backgroundColor: '#ecebed',
     padding: 16,
-    gap: 10
+    gap: 12
   },
   title: {
-    fontSize: 30,
+    fontSize: 42,
     fontWeight: '700',
-    color: '#222'
+    letterSpacing: -0.8,
+    color: '#16171a'
   },
   actions: {
     flexDirection: 'row',
-    gap: 10
+    gap: 12
   },
   primaryAction: {
     flex: 1,
-    backgroundColor: '#1f4d3d',
-    borderRadius: 10,
+    backgroundColor: '#141518',
+    borderRadius: 14,
     alignItems: 'center',
-    paddingVertical: 12
+    paddingVertical: 13
   },
   primaryActionText: {
     color: '#fff',
@@ -200,20 +201,21 @@ const styles = StyleSheet.create({
   },
   secondaryAction: {
     flex: 1,
-    borderWidth: 1,
-    borderColor: '#1f4d3d',
-    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#c7c6ca',
+    borderRadius: 14,
     alignItems: 'center',
-    paddingVertical: 12
+    paddingVertical: 12,
+    backgroundColor: '#efeff0'
   },
   secondaryActionText: {
-    color: '#1f4d3d',
+    color: '#26272b',
     fontWeight: '700'
   },
   segment: {
-    backgroundColor: '#ebe4d7',
-    borderRadius: 12,
-    padding: 4,
+    backgroundColor: '#e4e4e6',
+    borderRadius: 20,
+    padding: 5,
     flexDirection: 'row'
   },
   segmentButton: {
@@ -223,14 +225,14 @@ const styles = StyleSheet.create({
     borderRadius: 8
   },
   segmentButtonActive: {
-    backgroundColor: '#fffdf7'
+    backgroundColor: '#f2f2f3'
   },
   segmentText: {
-    color: '#555',
+    color: '#6a6a71',
     fontWeight: '600'
   },
   segmentTextActive: {
-    color: '#1f4d3d'
+    color: '#18191d'
   },
   centered: {
     alignItems: 'center',
@@ -239,9 +241,9 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     marginTop: 8,
-    fontSize: 17,
+    fontSize: 21,
     fontWeight: '700',
-    color: '#222'
+    color: '#18191c'
   },
   closetGrid: {
     flexDirection: 'row',
@@ -250,62 +252,62 @@ const styles = StyleSheet.create({
   },
   closetCard: {
     width: '48%',
-    borderRadius: 10,
-    backgroundColor: '#fff',
+    borderRadius: 16,
+    backgroundColor: '#f0f0f1',
     borderWidth: 1,
-    borderColor: '#ded7ca',
-    padding: 12
+    borderColor: '#e5e4e7',
+    padding: 14
   },
   closetCardSelected: {
-    backgroundColor: '#1f4d3d',
-    borderColor: '#1f4d3d'
+    backgroundColor: '#d8d8df',
+    borderColor: '#cac9cf'
   },
   closetName: {
     fontWeight: '700',
-    color: '#222'
+    color: '#1a1b1f'
   },
   closetNameSelected: {
-    color: '#fff'
+    color: '#111216'
   },
   closetCount: {
     marginTop: 4,
-    color: '#555'
+    color: '#6d6d74'
   },
   itemCard: {
-    borderRadius: 10,
-    backgroundColor: '#fff',
+    borderRadius: 16,
+    backgroundColor: '#f0f0f1',
     borderWidth: 1,
-    borderColor: '#ded7ca',
-    padding: 12,
-    gap: 3
+    borderColor: '#e5e4e7',
+    padding: 14,
+    gap: 4
   },
   itemTitle: {
     fontWeight: '700',
-    fontSize: 16,
-    color: '#222'
+    fontSize: 18,
+    color: '#1a1b1f'
   },
   itemMeta: {
-    color: '#555'
+    color: '#6a6a72'
   },
   empty: {
-    color: '#666'
+    color: '#6f7077'
   },
   errorText: {
-    color: '#8f2424',
+    color: '#a04f4f',
     fontWeight: '600'
   },
   errorCard: {
-    borderRadius: 10,
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#e1bcbc',
-    backgroundColor: '#f9eaea',
-    padding: 10,
+    borderColor: '#e3d1d1',
+    backgroundColor: '#f2e6e6',
+    padding: 12,
     gap: 8
   },
   retryButton: {
     alignSelf: 'flex-start',
-    backgroundColor: '#8f2424',
-    borderRadius: 8,
+    backgroundColor: '#141518',
+    borderRadius: 10,
     paddingVertical: 8,
     paddingHorizontal: 12
   },

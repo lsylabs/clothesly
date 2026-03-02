@@ -105,7 +105,7 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
     <ScrollView contentContainerStyle={styles.container}>
       {loading ? (
         <View style={styles.centered}>
-          <ActivityIndicator color="#1f4d3d" />
+          <ActivityIndicator color="#17181b" />
         </View>
       ) : null}
 
@@ -207,8 +207,8 @@ function OptionChips({ label, values }: { label: string; values: string[] }) {
 const styles = StyleSheet.create({
   container: {
     padding: 16,
-    backgroundColor: '#f5f1e8',
-    gap: 10
+    backgroundColor: '#ecebed',
+    gap: 12
   },
   centered: {
     alignItems: 'center',
@@ -217,9 +217,9 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     marginTop: 8,
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: '700',
-    color: '#222'
+    color: '#17181b'
   },
   optionGroup: {
     gap: 8
@@ -227,7 +227,7 @@ const styles = StyleSheet.create({
   optionLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#222'
+    color: '#1e1f23'
   },
   optionList: {
     flexDirection: 'row',
@@ -235,31 +235,31 @@ const styles = StyleSheet.create({
     gap: 8
   },
   chip: {
-    borderWidth: 1,
-    borderColor: '#c8c1b4',
-    borderRadius: 18,
+    borderWidth: 1.5,
+    borderColor: '#c8c7cb',
+    borderRadius: 20,
     paddingHorizontal: 12,
-    paddingVertical: 7,
-    backgroundColor: '#fff'
+    paddingVertical: 8,
+    backgroundColor: '#f0f0f1'
   },
   chipSelected: {
-    backgroundColor: '#1f4d3d',
-    borderColor: '#1f4d3d'
+    backgroundColor: '#d9d8de',
+    borderColor: '#bab9c0'
   },
   chipText: {
-    color: '#2d2d2d',
+    color: '#2d2e33',
     fontWeight: '500'
   },
   chipTextSelected: {
-    color: '#fff'
+    color: '#111216'
   },
   input: {
-    borderWidth: 1,
-    borderColor: '#d6d0c5',
-    borderRadius: 10,
-    backgroundColor: '#fff',
+    borderWidth: 1.5,
+    borderColor: '#c8c7cb',
+    borderRadius: 14,
+    backgroundColor: '#f0f0f1',
     paddingHorizontal: 12,
-    paddingVertical: 10
+    paddingVertical: 12
   },
   textArea: {
     minHeight: 90
@@ -267,42 +267,43 @@ const styles = StyleSheet.create({
   mainImage: {
     width: '100%',
     aspectRatio: 4 / 5,
-    borderRadius: 12,
-    backgroundColor: '#e8e2d7'
+    borderRadius: 18,
+    backgroundColor: '#dbdbe0'
   },
   valueText: {
-    color: '#2d2d2d'
+    color: '#2d2e33'
   },
   valueMuted: {
-    color: '#666'
+    color: '#6f7077'
   },
   secondarySingle: {
-    borderWidth: 1,
-    borderColor: '#1f4d3d',
-    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#c8c7cb',
+    borderRadius: 14,
     paddingVertical: 12,
-    alignItems: 'center'
+    alignItems: 'center',
+    backgroundColor: '#f0f0f1'
   },
   secondaryText: {
-    color: '#1f4d3d',
+    color: '#222327',
     fontWeight: '600'
   },
   errorCard: {
-    borderWidth: 1,
-    borderColor: '#e1bcbc',
-    borderRadius: 10,
-    backgroundColor: '#f9eaea',
+    borderWidth: 1.5,
+    borderColor: '#e3d1d1',
+    borderRadius: 14,
+    backgroundColor: '#f2e6e6',
     padding: 12,
     gap: 8
   },
   errorText: {
-    color: '#8f2424',
+    color: '#a04f4f',
     fontWeight: '600'
   },
   danger: {
     marginTop: 12,
-    backgroundColor: '#8f2424',
-    borderRadius: 10,
+    backgroundColor: '#141518',
+    borderRadius: 14,
     alignItems: 'center',
     paddingVertical: 14
   },

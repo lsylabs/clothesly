@@ -474,48 +474,50 @@ export default function AddItemScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     padding: 16,
-    backgroundColor: '#f5f1e8',
-    gap: 10
+    backgroundColor: '#ecebed',
+    gap: 12
   },
   sectionTitle: {
     marginTop: 8,
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: '700',
-    color: '#222'
+    color: '#17181b'
   },
   row: {
     flexDirection: 'row',
-    gap: 10
+    gap: 12
   },
   secondary: {
     flex: 1,
-    borderWidth: 1,
-    borderColor: '#1f4d3d',
-    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#c8c7cb',
+    borderRadius: 14,
     paddingVertical: 12,
-    alignItems: 'center'
+    alignItems: 'center',
+    backgroundColor: '#f0f0f1'
   },
   secondarySingle: {
-    borderWidth: 1,
-    borderColor: '#1f4d3d',
-    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#c8c7cb',
+    borderRadius: 14,
     paddingVertical: 12,
-    alignItems: 'center'
+    alignItems: 'center',
+    backgroundColor: '#f0f0f1'
   },
   secondaryText: {
-    color: '#1f4d3d',
+    color: '#232429',
     fontWeight: '600'
   },
   fileText: {
-    color: '#555'
+    color: '#676770'
   },
   input: {
-    borderWidth: 1,
-    borderColor: '#d6d0c5',
-    borderRadius: 10,
-    backgroundColor: '#fff',
+    borderWidth: 1.5,
+    borderColor: '#c8c7cb',
+    borderRadius: 14,
+    backgroundColor: '#f0f0f1',
     paddingHorizontal: 12,
-    paddingVertical: 10
+    paddingVertical: 12
   },
   textArea: {
     minHeight: 90,
@@ -533,18 +535,18 @@ const styles = StyleSheet.create({
   optionLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#222'
+    color: '#1e1f23'
   },
   addOptionButton: {
-    borderWidth: 1,
-    borderColor: '#1f4d3d',
-    borderRadius: 8,
+    borderWidth: 1.5,
+    borderColor: '#c8c7cb',
+    borderRadius: 10,
     paddingHorizontal: 10,
     paddingVertical: 5,
-    backgroundColor: '#fff'
+    backgroundColor: '#f0f0f1'
   },
   addOptionButtonText: {
-    color: '#1f4d3d',
+    color: '#232429',
     fontWeight: '600'
   },
   addOptionRow: {
@@ -557,17 +559,17 @@ const styles = StyleSheet.create({
   },
   addOptionAction: {
     borderWidth: 1,
-    borderColor: '#c8c1b4',
-    borderRadius: 8,
+    borderColor: '#c8c7cb',
+    borderRadius: 10,
     paddingHorizontal: 10,
     paddingVertical: 8,
-    backgroundColor: '#fff'
+    backgroundColor: '#f0f0f1'
   },
   addOptionConfirm: {
-    borderColor: '#1f4d3d'
+    borderColor: '#9f9ea4'
   },
   addOptionActionText: {
-    color: '#2d2d2d',
+    color: '#292a30',
     fontWeight: '600'
   },
   optionList: {
@@ -581,31 +583,31 @@ const styles = StyleSheet.create({
     gap: 8
   },
   chip: {
-    borderWidth: 1,
-    borderColor: '#c8c1b4',
-    borderRadius: 18,
+    borderWidth: 1.5,
+    borderColor: '#c8c7cb',
+    borderRadius: 20,
     paddingHorizontal: 12,
-    paddingVertical: 7,
-    backgroundColor: '#fff'
+    paddingVertical: 8,
+    backgroundColor: '#f0f0f1'
   },
   chipSelected: {
-    backgroundColor: '#1f4d3d',
-    borderColor: '#1f4d3d'
+    backgroundColor: '#d9d8de',
+    borderColor: '#bab9c0'
   },
   chipText: {
-    color: '#2d2d2d',
+    color: '#2d2e33',
     fontWeight: '500'
   },
   chipTextSelected: {
-    color: '#fff'
+    color: '#111216'
   },
   muted: {
-    color: '#666'
+    color: '#6f7077'
   },
   primary: {
     marginTop: 12,
-    backgroundColor: '#1f4d3d',
-    borderRadius: 10,
+    backgroundColor: '#141518',
+    borderRadius: 14,
     alignItems: 'center',
     paddingVertical: 14
   },
@@ -617,7 +619,7 @@ const styles = StyleSheet.create({
     opacity: 0.65
   },
   errorText: {
-    color: '#8f2424',
+    color: '#a04f4f',
     fontWeight: '600'
   }
 });

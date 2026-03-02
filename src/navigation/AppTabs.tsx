@@ -17,7 +17,7 @@ const Tab = createBottomTabNavigator<AppTabsParamList>();
 
 function CenterAddButton({ onPress, bottomInset }: { onPress: () => void; bottomInset: number }) {
   return (
-    <Pressable onPress={onPress} style={[styles.centerButton, { marginBottom: bottomInset > 0 ? bottomInset + 4 : 18 }]}>
+    <Pressable onPress={onPress} style={[styles.centerButton, { marginBottom: bottomInset > 0 ? bottomInset + 2 : 14 }]}>
       <Text style={styles.centerButtonText}>+</Text>
     </Pressable>
   );
@@ -36,13 +36,24 @@ export default function AppTabs() {
         }}
         screenOptions={{
           headerShown: false,
-          tabBarActiveTintColor: '#1f4d3d',
-          tabBarInactiveTintColor: '#8a867f',
+          tabBarActiveTintColor: '#17181b',
+          tabBarInactiveTintColor: '#88878c',
+          tabBarLabelStyle: {
+            fontSize: 12,
+            fontWeight: '600',
+            marginTop: -2
+          },
           tabBarStyle: {
-            height: 56 + Math.max(insets.bottom, 8),
-            paddingBottom: Math.max(insets.bottom, 8),
-            paddingTop: 8,
-            backgroundColor: '#fffdf7'
+            position: 'absolute',
+            left: 14,
+            right: 14,
+            bottom: Math.max(insets.bottom, 8),
+            borderTopWidth: 0,
+            borderRadius: 32,
+            height: 72,
+            paddingBottom: 9,
+            paddingTop: 9,
+            backgroundColor: '#e5e5e7'
           }
         }}
       >
@@ -84,23 +95,23 @@ export default function AppTabs() {
 
 const styles = StyleSheet.create({
   centerButton: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#1f4d3d',
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#141518',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 18,
+    marginBottom: 14,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 4
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 5,
+    elevation: 3
   },
   centerButtonText: {
-    fontSize: 26,
-    lineHeight: 28,
+    fontSize: 24,
+    lineHeight: 24,
     color: '#ffffff',
-    fontWeight: '700'
+    fontWeight: '500'
   }
 });

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, TextInput } from 'react-native';
 
 import * as AuthSession from 'expo-auth-session';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -82,31 +82,32 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 24,
     justifyContent: 'center',
-    backgroundColor: '#f5f1e8'
+    backgroundColor: '#ecebed'
   },
   title: {
-    fontSize: 30,
+    fontSize: 36,
     fontWeight: '700',
-    color: '#1d1d1d',
+    color: '#16171a',
+    letterSpacing: -0.8,
     marginBottom: 6
   },
   subtitle: {
     fontSize: 16,
-    color: '#3e3e3e',
+    color: '#55565d',
     marginBottom: 24
   },
   input: {
-    backgroundColor: '#ffffff',
-    borderRadius: 10,
+    backgroundColor: '#f0f0f1',
+    borderRadius: 14,
     paddingHorizontal: 14,
-    paddingVertical: 12,
+    paddingVertical: 13,
     marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#d6d0c5'
+    borderWidth: 1.5,
+    borderColor: '#c8c7cb'
   },
   button: {
-    backgroundColor: '#1f4d3d',
-    borderRadius: 10,
+    backgroundColor: '#141518',
+    borderRadius: 14,
     paddingVertical: 14,
     alignItems: 'center',
     marginTop: 4
@@ -120,7 +121,7 @@ const styles = StyleSheet.create({
   },
   link: {
     marginTop: 18,
-    color: '#3f6659',
+    color: '#4f5058',
     textAlign: 'center'
   }
 });
