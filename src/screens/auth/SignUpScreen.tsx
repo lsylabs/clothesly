@@ -114,7 +114,7 @@ export default function SignUpScreen({ navigation }: Props) {
   return (
     <SafeAreaView edges={['top', 'bottom']} style={styles.container}>
       <Pressable onPress={() => navigation.navigate('SignIn')} style={styles.backRow}>
-        <Ionicons color="#5f6168" name="arrow-back" size={24} />
+        <Ionicons color="#0A0A0A" name="arrow-back" size={24} />
         <Text style={styles.backText}>Back to sign in</Text>
       </Pressable>
       <View style={styles.header}>
@@ -123,11 +123,11 @@ export default function SignUpScreen({ navigation }: Props) {
       </View>
 
       <View style={styles.field}>
-        <Ionicons color="#767676" name="person-outline" size={20} />
+        <Ionicons color="#0A0A0A" name="person-outline" size={20} />
         <AppTextInput onChangeText={setFullName} placeholder="Full Name" style={styles.input} value={fullName} />
       </View>
       <View style={styles.field}>
-        <Ionicons color="#767676" name="mail-outline" size={20} />
+        <Ionicons color="#0A0A0A" name="mail-outline" size={20} />
         <AppTextInput
           autoCapitalize="none"
           keyboardType="email-address"
@@ -138,7 +138,7 @@ export default function SignUpScreen({ navigation }: Props) {
         />
       </View>
       <View style={styles.field}>
-        <Ionicons color="#767676" name="lock-closed-outline" size={20} />
+        <Ionicons color="#0A0A0A" name="lock-closed-outline" size={20} />
         <AppTextInput
           onChangeText={setPassword}
           placeholder="Password"
@@ -147,11 +147,11 @@ export default function SignUpScreen({ navigation }: Props) {
           value={password}
         />
         <Pressable hitSlop={8} onPress={() => setShowPassword((current) => !current)}>
-          <Ionicons color="#767676" name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={22} />
+          <Ionicons color="#0A0A0A" name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={22} />
         </Pressable>
       </View>
       <View style={styles.field}>
-        <Ionicons color="#767676" name="lock-closed-outline" size={20} />
+        <Ionicons color="#0A0A0A" name="lock-closed-outline" size={20} />
         <AppTextInput
           onChangeText={setConfirmPassword}
           placeholder="Confirm Password"
@@ -160,7 +160,7 @@ export default function SignUpScreen({ navigation }: Props) {
           value={confirmPassword}
         />
         <Pressable hitSlop={8} onPress={() => setShowConfirmPassword((current) => !current)}>
-          <Ionicons color="#767676" name={showConfirmPassword ? 'eye-off-outline' : 'eye-outline'} size={22} />
+          <Ionicons color="#0A0A0A" name={showConfirmPassword ? 'eye-off-outline' : 'eye-outline'} size={22} />
         </Pressable>
       </View>
 
@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 24,
     justifyContent: 'flex-start',
-    backgroundColor: '#ffffff'
+    backgroundColor: '#FAFAFA'
   },
   backRow: {
     marginTop: 22,
@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
     gap: 8
   },
   backText: {
-    color: '#5f6168',
+    color: '#0A0A0A',
     fontSize: 18,
     fontWeight: '500'
   },
@@ -207,21 +207,21 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 50,
     fontWeight: '700',
-    color: '#16171a',
+    color: '#0A0A0A',
     letterSpacing: -1,
     marginBottom: 10,
     textAlign: 'center'
   },
   subtitle: {
     fontSize: 18,
-    color: '#55565d',
+    color: '#0A0A0A',
     textAlign: 'center'
   },
   field: {
     borderWidth: 1.5,
-    borderColor: '#d9dce3',
+    borderColor: '#E0E0E0',
     borderRadius: 16,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#FAFAFA',
     paddingHorizontal: 14,
     minHeight: 58,
     flexDirection: 'row',
@@ -249,10 +249,10 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#d9dce3'
+    backgroundColor: '#E0E0E0'
   },
   dividerText: {
-    color: '#6a6c73',
+    color: '#0A0A0A',
     fontSize: 13,
     letterSpacing: 1.4,
     fontWeight: '500'
@@ -261,25 +261,25 @@ const styles = StyleSheet.create({
     minHeight: 56,
     borderRadius: 16,
     borderWidth: 1.5,
-    borderColor: '#d9dce3',
+    borderColor: '#E0E0E0',
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
     gap: 10,
-    backgroundColor: '#ffffff'
+    backgroundColor: '#FAFAFA'
   },
   googleIcon: {
     width: 20,
     height: 20
   },
   googleButtonText: {
-    color: '#16171a',
+    color: '#0A0A0A',
     fontSize: 17,
     fontWeight: '600'
   },
   disclaimer: {
     marginTop: 18,
-    color: '#5f6168',
+    color: '#0A0A0A',
     fontSize: 14,
     lineHeight: 20
   }

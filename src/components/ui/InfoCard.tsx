@@ -21,12 +21,12 @@ const styles = StyleSheet.create({
   card: {
     borderRadius: 20,
     padding: 18,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#FAFAFA',
     borderWidth: 1,
-    borderColor: '#e6e8ec'
+    borderColor: '#E8E8E8'
   },
   text: {
-    color: '#45464c',
+    color: '#0A0A0A',
     fontSize: 16,
     lineHeight: 24
   }

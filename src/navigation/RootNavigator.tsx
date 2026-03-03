@@ -21,7 +21,7 @@ export default function RootNavigator() {
   if (loading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator color="#17181b" size="large" />
+        <ActivityIndicator color="#0A0A0A" size="large" />
       </View>
     );
   }
@@ -32,7 +32,7 @@ export default function RootNavigator() {
         ...DefaultTheme,
         colors: {
           ...DefaultTheme.colors,
-          background: '#ffffff'
+          background: '#FAFAFA'
         }
       }}
     >
@@ -46,17 +46,17 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#ffffff',
+    backgroundColor: '#FAFAFA',
     paddingHorizontal: 24
   },
   title: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#17181b'
+    color: '#0A0A0A'
   },
   body: {
     marginTop: 10,
-    color: '#52535a',
+    color: '#0A0A0A',
     textAlign: 'center',
     lineHeight: 20
   }

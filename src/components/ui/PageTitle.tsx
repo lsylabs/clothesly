@@ -13,6 +13,6 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: '700',
     letterSpacing: -0.4,
-    color: '#16171a'
+    color: '#0A0A0A'
   }
 });

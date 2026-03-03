@@ -261,7 +261,7 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
     <View style={styles.screen}>
       <View style={[styles.header, { paddingTop: insets.top + 6 }]}>
         <Pressable hitSlop={8} onPress={() => navigation.goBack()} style={styles.headerButton}>
-          <Ionicons color="#111111" name="chevron-back" size={24} />
+          <Ionicons color="#0A0A0A" name="chevron-back" size={24} />
         </Pressable>
         <Text style={styles.headerTitle}>Item Details</Text>
         <View style={styles.headerSpacer} />
@@ -269,7 +269,7 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
       <ScrollView contentContainerStyle={styles.container}>
       {loading ? (
         <View style={styles.centered}>
-          <ActivityIndicator color="#17181b" />
+          <ActivityIndicator color="#0A0A0A" />
         </View>
       ) : null}
 
@@ -412,7 +412,7 @@ function OptionChips({ label, values }: { label: string; values: string[] }) {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#ffffff'
+    backgroundColor: '#FAFAFA'
   },
   header: {
     flexDirection: 'row',
@@ -428,7 +428,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 32,
     fontWeight: '700',
-    color: '#111111',
+    color: '#0A0A0A',
     letterSpacing: -0.7
   },
   headerSpacer: {
@@ -437,7 +437,7 @@ const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 16,
     paddingBottom: 22,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#FAFAFA',
     gap: 12
   },
   centered: {
@@ -451,7 +451,7 @@ const styles = StyleSheet.create({
   optionLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1e1f23'
+    color: '#0A0A0A'
   },
   optionList: {
     flexDirection: 'row',
@@ -460,28 +460,28 @@ const styles = StyleSheet.create({
   },
   chip: {
     borderWidth: 1.5,
-    borderColor: '#d9dce3',
+    borderColor: '#E0E0E0',
     borderRadius: 20,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    backgroundColor: '#ffffff'
+    backgroundColor: '#FAFAFA'
   },
   chipSelected: {
-    backgroundColor: '#d9d8de',
-    borderColor: '#bab9c0'
+    backgroundColor: '#E0E0E0',
+    borderColor: '#E0E0E0'
   },
   chipText: {
-    color: '#2d2e33',
+    color: '#0A0A0A',
     fontWeight: '500'
   },
   chipTextSelected: {
-    color: '#111216'
+    color: '#0A0A0A'
   },
   input: {
     borderWidth: 1.5,
-    borderColor: '#d9dce3',
+    borderColor: '#E0E0E0',
     borderRadius: 14,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#FAFAFA',
     paddingHorizontal: 12,
     paddingVertical: 12
   },
@@ -492,27 +492,27 @@ const styles = StyleSheet.create({
     width: '100%',
     aspectRatio: 4 / 5,
     borderRadius: 18,
-    backgroundColor: '#dbdbe0'
+    backgroundColor: '#E8E8E8'
   },
   valueText: {
-    color: '#2d2e33'
+    color: '#0A0A0A'
   },
   valueMuted: {
-    color: '#6f7077'
+    color: '#0A0A0A'
   },
   secondarySingle: {
     alignSelf: 'flex-start'
   },
   errorCard: {
     borderWidth: 1.5,
-    borderColor: '#e3d1d1',
+    borderColor: '#DC2626',
     borderRadius: 14,
-    backgroundColor: '#f2e6e6',
+    backgroundColor: '#F5F5F5',
     padding: 12,
     gap: 8
   },
   errorText: {
-    color: '#a04f4f',
+    color: '#DC2626',
     fontWeight: '600'
   },
   danger: {

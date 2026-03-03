@@ -15,10 +15,10 @@ export default function AppNavigator() {
   return (
     <Stack.Navigator
       screenOptions={{
-        headerStyle: { backgroundColor: '#ffffff' },
-        headerTitleStyle: { color: '#17181b', fontWeight: '700', fontSize: 17 },
-        headerTintColor: '#17181b',
-        contentStyle: { backgroundColor: '#ffffff' },
+        headerStyle: { backgroundColor: '#FAFAFA' },
+        headerTitleStyle: { color: '#0A0A0A', fontWeight: '700', fontSize: 17 },
+        headerTintColor: '#0A0A0A',
+        contentStyle: { backgroundColor: '#FAFAFA' },
         headerBackTitleVisible: false,
         headerShadowVisible: false
       }}
@@ -34,7 +34,7 @@ export default function AppNavigator() {
           headerBackVisible: false,
           headerLeft: () => (
             <Pressable hitSlop={8} onPress={() => navigation.goBack()} style={{ paddingHorizontal: 4, paddingVertical: 2 }}>
-              <Ionicons color="#232429" name="close" size={22} />
+              <Ionicons color="#0A0A0A" name="close" size={22} />
             </Pressable>
           )
         })}

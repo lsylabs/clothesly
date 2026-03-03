@@ -13,12 +13,12 @@ export default function AppTextInput({ style, inputStyle, multiline, ...rest }: 
 const styles = StyleSheet.create({
   input: {
     borderWidth: 1.5,
-    borderColor: '#d9dce3',
+    borderColor: '#E0E0E0',
     borderRadius: 14,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#FAFAFA',
     paddingHorizontal: 12,
     paddingVertical: 12,
-    color: '#1d1e22'
+    color: '#0A0A0A'
   },
   multiline: {
     minHeight: 90,

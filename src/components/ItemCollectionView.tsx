@@ -114,29 +114,29 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontSize: 21,
     fontWeight: '700',
-    color: '#18191c'
+    color: '#0A0A0A'
   },
   filterTabs: {
     gap: 8
   },
   filterTab: {
     borderWidth: 1,
-    borderColor: '#d9dce3',
-    backgroundColor: '#ffffff',
+    borderColor: '#E0E0E0',
+    backgroundColor: '#FAFAFA',
     borderRadius: 999,
     paddingHorizontal: 12,
     paddingVertical: 7
   },
   filterTabActive: {
-    backgroundColor: '#141518',
-    borderColor: '#141518'
+    backgroundColor: '#0A0A0A',
+    borderColor: '#0A0A0A'
   },
   filterTabText: {
-    color: '#4d4f57',
+    color: '#0A0A0A',
     fontWeight: '600'
   },
   filterTabTextActive: {
-    color: '#ffffff'
+    color: '#FAFAFA'
   },
   itemGrid: {
     flexDirection: 'row',
@@ -151,37 +151,37 @@ const styles = StyleSheet.create({
     width: '100%',
     aspectRatio: 1,
     borderRadius: 14,
-    backgroundColor: '#f6f7f9'
+    backgroundColor: '#F5F5F5'
   },
   itemImagePlaceholder: {
     alignItems: 'center',
     justifyContent: 'center'
   },
   itemImagePlaceholderText: {
-    color: '#7a7b82',
+    color: '#0A0A0A',
     fontWeight: '500'
   },
   addTile: {
     borderStyle: 'dashed',
-    borderColor: '#d9dce3',
-    backgroundColor: '#ffffff',
+    borderColor: '#E0E0E0',
+    backgroundColor: '#FAFAFA',
     alignItems: 'center',
     justifyContent: 'center'
   },
   addTileIcon: {
     fontSize: 30,
     lineHeight: 30,
-    color: '#5b5c64',
+    color: '#0A0A0A',
     fontWeight: '300'
   },
   addTileLabel: {
     marginTop: 6,
-    color: '#5b5c64',
+    color: '#0A0A0A',
     fontWeight: '600'
   },
   itemTitle: {
     fontWeight: '700',
     fontSize: 16,
-    color: '#1a1b1f'
+    color: '#0A0A0A'
   }
 });

@@ -15,45 +15,45 @@ type Props = Omit<PressableProps, 'style'> & {
 const variantStyles: Record<ButtonVariant, { button: ViewStyle; text: TextStyle }> = {
   primary: {
     button: {
-      backgroundColor: '#141518',
-      borderColor: '#141518',
+      backgroundColor: '#0A0A0A',
+      borderColor: '#0A0A0A',
       borderWidth: 1
     },
     text: {
-      color: '#ffffff',
+      color: '#FAFAFA',
       fontWeight: '700'
     }
   },
   secondary: {
     button: {
-      backgroundColor: '#ffffff',
-      borderColor: '#d9dce3',
+      backgroundColor: '#FAFAFA',
+      borderColor: '#E0E0E0',
       borderWidth: 2
     },
     text: {
-      color: '#232429',
+      color: '#0A0A0A',
       fontWeight: '600'
     }
   },
   danger: {
     button: {
-      backgroundColor: '#b43d3d',
-      borderColor: '#b43d3d',
+      backgroundColor: '#DC2626',
+      borderColor: '#DC2626',
       borderWidth: 1
     },
     text: {
-      color: '#ffffff',
+      color: '#FAFAFA',
       fontWeight: '700'
     }
   },
   ghost: {
     button: {
-      backgroundColor: '#ffffff',
-      borderColor: '#d9dce3',
+      backgroundColor: '#FAFAFA',
+      borderColor: '#E0E0E0',
       borderWidth: 1
     },
     text: {
-      color: '#292a30',
+      color: '#0A0A0A',
       fontWeight: '600'
     }
   }

@@ -30,11 +30,11 @@ export default function AddActionSheet({ visible, onClose, onAddItem, onCreateCl
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    backgroundColor: 'rgba(10, 10, 10, 0.3)',
     justifyContent: 'flex-end'
   },
   sheet: {
-    backgroundColor: '#ffffff',
+    backgroundColor: '#FAFAFA',
     paddingHorizontal: 18,
     paddingTop: 20,
     borderTopLeftRadius: 28,
@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
   heading: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#17181b',
+    color: '#0A0A0A',
     marginBottom: 6
   },
   cancel: {

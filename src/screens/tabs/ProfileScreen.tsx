@@ -24,13 +24,13 @@ function SettingRow({ icon, title, subtitle, onPress, hideBorder = false }: Sett
   return (
     <Pressable onPress={onPress} style={[styles.row, hideBorder && styles.rowNoBorder]}>
       <View style={styles.rowIconWrap}>
-        <Ionicons color="#111214" name={icon} size={28} />
+        <Ionicons color="#0A0A0A" name={icon} size={28} />
       </View>
       <View style={styles.rowTextWrap}>
         <Text style={styles.rowTitle}>{title}</Text>
         <Text style={styles.rowSubtitle}>{subtitle}</Text>
       </View>
-      <Ionicons color="#6a6c73" name="chevron-forward" size={28} />
+      <Ionicons color="#0A0A0A" name="chevron-forward" size={28} />
     </Pressable>
   );
 }
@@ -246,7 +246,7 @@ export default function ProfileScreen() {
               </View>
             )}
             <View style={styles.cameraBadge}>
-              <Ionicons color="#ffffff" name="camera-outline" size={18} />
+              <Ionicons color="#FAFAFA" name="camera-outline" size={18} />
             </View>
           </Pressable>
 
@@ -286,7 +286,7 @@ export default function ProfileScreen() {
         }}
         style={styles.signOut}
       >
-        <Ionicons color="#dc2626" name="log-out-outline" size={28} />
+        <Ionicons color="#DC2626" name="log-out-outline" size={28} />
         <Text style={styles.signOutText}>Sign Out</Text>
       </Pressable>
 
@@ -298,7 +298,7 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fafafa'
+    backgroundColor: '#FAFAFA'
   },
   content: {
     padding: 20,
@@ -308,17 +308,17 @@ const styles = StyleSheet.create({
     fontSize: 58,
     fontWeight: '700',
     letterSpacing: -1.2,
-    color: '#0a0a0a'
+    color: '#0A0A0A'
   },
   identityCard: {
     marginTop: 22,
     borderRadius: 26,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#FAFAFA',
     paddingVertical: 22,
     paddingHorizontal: 22,
     borderWidth: 1,
-    borderColor: '#ebecef',
-    shadowColor: '#000',
+    borderColor: '#E8E8E8',
+    shadowColor: '#0A0A0A',
     shadowOffset: { width: 0, height: 14 },
     shadowOpacity: 0.14,
     shadowRadius: 26,
@@ -342,14 +342,14 @@ const styles = StyleSheet.create({
     width: 94,
     height: 94,
     borderRadius: 47,
-    backgroundColor: '#75777f',
+    backgroundColor: '#E0E0E0',
     alignItems: 'center',
     justifyContent: 'center'
   },
   avatarInitials: {
     fontSize: 44,
     fontWeight: '700',
-    color: '#f2f2f2',
+    color: '#FAFAFA',
     letterSpacing: -0.7
   },
   cameraBadge: {
@@ -361,7 +361,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#0a0a0a'
+    backgroundColor: '#0A0A0A'
   },
   identityText: {
     flex: 1
@@ -370,36 +370,36 @@ const styles = StyleSheet.create({
     fontSize: 26,
     fontWeight: '700',
     letterSpacing: -1,
-    color: '#0a0a0a'
+    color: '#0A0A0A'
   },
   emailText: {
     marginTop: 4,
     fontSize: 18,
-    color: '#66666d'
+    color: '#0A0A0A'
   },
   warning: {
     marginTop: 10,
     marginBottom: 2,
-    color: '#9e4c4c'
+    color: '#DC2626'
   },
   sectionTitle: {
     marginTop: 24,
     marginBottom: 12,
     fontSize: 22,
     fontWeight: '700',
-    color: '#63646a'
+    color: '#0A0A0A'
   },
   groupCard: {
     borderRadius: 22,
     borderWidth: 1,
-    borderColor: '#dadce2',
+    borderColor: '#E0E0E0',
     overflow: 'hidden',
-    backgroundColor: '#ffffff'
+    backgroundColor: '#FAFAFA'
   },
   row: {
     minHeight: 92,
     borderBottomWidth: 1,
-    borderBottomColor: '#dadce2',
+    borderBottomColor: '#E0E0E0',
     paddingHorizontal: 18,
     flexDirection: 'row',
     alignItems: 'center'
@@ -411,7 +411,7 @@ const styles = StyleSheet.create({
     width: 54,
     height: 54,
     borderRadius: 27,
-    backgroundColor: '#f4f5f7',
+    backgroundColor: '#F5F5F5',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 16
@@ -423,20 +423,20 @@ const styles = StyleSheet.create({
   rowTitle: {
     fontSize: 20,
     lineHeight: 24,
-    color: '#63646a',
+    color: '#0A0A0A',
     fontWeight: '500'
   },
   rowSubtitle: {
     marginTop: 2,
     fontSize: 15,
     lineHeight: 20,
-    color: '#63646a'
+    color: '#0A0A0A'
   },
   signOut: {
     marginTop: 26,
     borderRadius: 22,
     borderWidth: 1.5,
-    borderColor: '#f1b9bf',
+    borderColor: '#DC2626',
     minHeight: 78,
     alignItems: 'center',
     justifyContent: 'center',
@@ -446,13 +446,13 @@ const styles = StyleSheet.create({
   signOutText: {
     fontSize: 23,
     fontWeight: '500',
-    color: '#dc2626'
+    color: '#DC2626'
   },
   version: {
     marginTop: 38,
     marginBottom: 8,
     textAlign: 'center',
-    color: '#6d6f75',
+    color: '#0A0A0A',
     fontSize: 16
   },
   disabled: {

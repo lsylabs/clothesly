@@ -25,7 +25,7 @@ const TAB_ICON_BY_ROUTE = {
 function CenterAddButton({ onPress, bottomInset }: { onPress: () => void; bottomInset: number }) {
   return (
     <Pressable onPress={onPress} style={[styles.centerButton, { marginBottom: bottomInset > 0 ? bottomInset + 2 : 14 }]}>
-      <Ionicons color="#ffffff" name="add-outline" size={24} />
+      <Ionicons color="#FAFAFA" name="add-outline" size={24} />
     </Pressable>
   );
 }
@@ -40,12 +40,12 @@ export default function AppTabs() {
       <Tab.Navigator
         sceneContainerStyle={{
           paddingTop: insets.top,
-          backgroundColor: '#ffffff'
+          backgroundColor: '#FAFAFA'
         }}
         screenOptions={({ route }) => ({
           headerShown: false,
-          tabBarActiveTintColor: '#17181b',
-          tabBarInactiveTintColor: '#88878c',
+          tabBarActiveTintColor: '#0A0A0A',
+          tabBarInactiveTintColor: '#E0E0E0',
           tabBarIcon: ({ color, size }) => {
             if (route.name === 'Add') return null;
             const iconName = TAB_ICON_BY_ROUTE[route.name as keyof typeof TAB_ICON_BY_ROUTE] ?? 'ellipse-outline';
@@ -66,8 +66,8 @@ export default function AppTabs() {
             height: 72,
             paddingBottom: 9,
             paddingTop: 9,
-            backgroundColor: '#ffffff',
-            shadowColor: '#000',
+            backgroundColor: '#FAFAFA',
+            shadowColor: '#0A0A0A',
             shadowOffset: { width: 0, height: 10 },
             shadowOpacity: 0.08,
             shadowRadius: 18,
@@ -116,11 +116,11 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#141518',
+    backgroundColor: '#0A0A0A',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 14,
-    shadowColor: '#000',
+    shadowColor: '#0A0A0A',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 5,

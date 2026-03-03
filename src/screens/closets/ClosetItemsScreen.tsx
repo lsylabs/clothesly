@@ -188,23 +188,23 @@ export default function ClosetItemsScreen({ navigation, route }: Props) {
           setRefreshing(true);
           await loadData({ blocking: false });
           setRefreshing(false);
-        }} refreshing={refreshing} tintColor="#17181b" />}
+        }} refreshing={refreshing} tintColor="#0A0A0A" />}
       >
         <View style={[styles.header, { paddingTop: insets.top + 6 }]}>
           <Pressable hitSlop={8} onPress={() => navigation.goBack()} style={styles.headerButton}>
-            <Ionicons color="#111111" name="chevron-back" size={24} />
+            <Ionicons color="#0A0A0A" name="chevron-back" size={24} />
           </Pressable>
           <Text numberOfLines={1} style={styles.headerTitle}>
             {closetName}
           </Text>
           <Pressable hitSlop={8} onPress={() => setActionSheetVisible(true)} style={styles.headerButton}>
-            <Ionicons color="#111111" name="ellipsis-horizontal" size={22} />
+            <Ionicons color="#0A0A0A" name="ellipsis-horizontal" size={22} />
           </Pressable>
         </View>
 
         {loading && !hasLoadedOnce ? (
           <View style={styles.centered}>
-            <ActivityIndicator color="#17181b" />
+            <ActivityIndicator color="#0A0A0A" />
           </View>
         ) : null}
         {loading && hasLoadedOnce ? <Text style={styles.syncingText}>Syncing items...</Text> : null}
@@ -232,7 +232,7 @@ export default function ClosetItemsScreen({ navigation, route }: Props) {
             <View style={styles.sheetHeader}>
               <Text style={styles.sheetTitle}>Closet Actions</Text>
               <Pressable hitSlop={8} onPress={() => setActionSheetVisible(false)} style={styles.sheetCloseButton}>
-                <Ionicons color="#4f5058" name="close-outline" size={22} />
+                <Ionicons color="#0A0A0A" name="close-outline" size={22} />
               </Pressable>
             </View>
             <Pressable
@@ -242,7 +242,7 @@ export default function ClosetItemsScreen({ navigation, route }: Props) {
               }}
               style={styles.sheetAction}
             >
-              <Ionicons color="#1f2024" name="pencil-outline" size={20} />
+              <Ionicons color="#0A0A0A" name="pencil-outline" size={20} />
               <Text style={styles.sheetActionText}>Edit Closet</Text>
             </Pressable>
             <Pressable
@@ -252,7 +252,7 @@ export default function ClosetItemsScreen({ navigation, route }: Props) {
               }}
               style={styles.sheetAction}
             >
-              <Ionicons color="#1f2024" name="swap-vertical-outline" size={20} />
+              <Ionicons color="#0A0A0A" name="swap-vertical-outline" size={20} />
               <Text style={styles.sheetActionText}>Edit Item Order</Text>
             </Pressable>
             <Pressable
@@ -262,7 +262,7 @@ export default function ClosetItemsScreen({ navigation, route }: Props) {
               }}
               style={styles.sheetAction}
             >
-              <Ionicons color="#1f2024" name="checkmark-circle-outline" size={20} />
+              <Ionicons color="#0A0A0A" name="checkmark-circle-outline" size={20} />
               <Text style={styles.sheetActionText}>Select</Text>
             </Pressable>
             <Pressable
@@ -279,7 +279,7 @@ export default function ClosetItemsScreen({ navigation, route }: Props) {
               }
               style={[styles.sheetAction, deletingCloset && styles.disabled]}
             >
-              <Ionicons color="#b43d3d" name="trash-outline" size={20} />
+              <Ionicons color="#DC2626" name="trash-outline" size={20} />
               <Text style={styles.sheetActionDangerText}>{deletingCloset ? 'Deleting...' : 'Delete Closet'}</Text>
             </Pressable>
           </Animated.View>
@@ -291,7 +291,7 @@ export default function ClosetItemsScreen({ navigation, route }: Props) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#ffffff',
+    backgroundColor: '#FAFAFA',
     padding: 16,
     gap: 12
   },
@@ -311,7 +311,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 32,
     fontWeight: '700',
-    color: '#111111',
+    color: '#0A0A0A',
     letterSpacing: -0.7,
     marginHorizontal: 10
   },
@@ -321,20 +321,20 @@ const styles = StyleSheet.create({
     paddingVertical: 16
   },
   syncingText: {
-    color: '#6a6a72',
+    color: '#0A0A0A',
     fontWeight: '500'
   },
   errorText: {
-    color: '#a04f4f',
+    color: '#DC2626',
     fontWeight: '600'
   },
   sheetBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.38)',
+    backgroundColor: 'rgba(10, 10, 10, 0.38)',
     justifyContent: 'flex-end'
   },
   sheet: {
-    backgroundColor: '#ffffff',
+    backgroundColor: '#FAFAFA',
     paddingTop: 20,
     paddingHorizontal: 18,
     borderTopLeftRadius: 28,
@@ -344,7 +344,7 @@ const styles = StyleSheet.create({
   sheetTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#17181b'
+    color: '#0A0A0A'
   },
   sheetHeader: {
     flexDirection: 'row',
@@ -364,12 +364,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 2
   },
   sheetActionText: {
-    color: '#1f2024',
+    color: '#0A0A0A',
     fontSize: 16,
     fontWeight: '600'
   },
   sheetActionDangerText: {
-    color: '#b43d3d',
+    color: '#DC2626',
     fontSize: 16,
     fontWeight: '600'
   },

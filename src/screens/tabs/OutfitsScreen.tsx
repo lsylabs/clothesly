@@ -15,7 +15,7 @@ export default function OutfitsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#FAFAFA',
     padding: 20
   },
   body: {

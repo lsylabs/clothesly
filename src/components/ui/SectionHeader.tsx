@@ -13,6 +13,6 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontSize: 20,
     fontWeight: '700',
-    color: '#17181b'
+    color: '#0A0A0A'
   }
 });

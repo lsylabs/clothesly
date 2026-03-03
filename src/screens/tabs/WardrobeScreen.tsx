@@ -222,11 +222,11 @@ export default function WardrobeScreen() {
 
       <ScrollView
         contentContainerStyle={styles.container}
-        refreshControl={<RefreshControl onRefresh={handleRefresh} refreshing={refreshing} tintColor="#17181b" />}
+        refreshControl={<RefreshControl onRefresh={handleRefresh} refreshing={refreshing} tintColor="#0A0A0A" />}
       >
         {loading && !hasLoadedOnce ? (
           <View style={styles.centered}>
-            <ActivityIndicator color="#17181b" />
+            <ActivityIndicator color="#0A0A0A" />
           </View>
         ) : null}
         {loading && hasLoadedOnce ? <Text style={styles.syncingText}>Syncing wardrobe...</Text> : null}
@@ -371,7 +371,7 @@ function CollageCell({ url }: { url: string }) {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#ffffff'
+    backgroundColor: '#FAFAFA'
   },
   header: {
     paddingHorizontal: 16,
@@ -380,12 +380,12 @@ const styles = StyleSheet.create({
     gap: 12
   },
   container: {
-    backgroundColor: '#ffffff',
+    backgroundColor: '#FAFAFA',
     padding: 16,
     gap: 12
   },
   segment: {
-    backgroundColor: '#f7f8fa',
+    backgroundColor: '#F5F5F5',
     borderRadius: 20,
     padding: 5,
     flexDirection: 'row'
@@ -397,14 +397,14 @@ const styles = StyleSheet.create({
     borderRadius: 8
   },
   segmentButtonActive: {
-    backgroundColor: '#ffffff'
+    backgroundColor: '#FAFAFA'
   },
   segmentText: {
-    color: '#6a6a71',
+    color: '#0A0A0A',
     fontWeight: '600'
   },
   segmentTextActive: {
-    color: '#18191d'
+    color: '#0A0A0A'
   },
   centered: {
     alignItems: 'center',
@@ -412,14 +412,14 @@ const styles = StyleSheet.create({
     paddingVertical: 16
   },
   syncingText: {
-    color: '#6a6a72',
+    color: '#0A0A0A',
     fontWeight: '500'
   },
   sectionTitle: {
     marginTop: 8,
     fontSize: 21,
     fontWeight: '700',
-    color: '#18191c'
+    color: '#0A0A0A'
   },
   closetGrid: {
     flexDirection: 'row',
@@ -435,12 +435,12 @@ const styles = StyleSheet.create({
     aspectRatio: 1,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#e6e8ec',
-    backgroundColor: '#f6f7f9'
+    borderColor: '#E8E8E8',
+    backgroundColor: '#F5F5F5'
   },
   closetName: {
     fontWeight: '700',
-    color: '#1a1b1f',
+    color: '#0A0A0A',
     fontSize: 16
   },
   collageWrap: {
@@ -456,7 +456,7 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRadius: 8,
     overflow: 'hidden',
-    backgroundColor: '#eceef2'
+    backgroundColor: '#E8E8E8'
   },
   collageCellImage: {
     width: '100%',
@@ -464,46 +464,46 @@ const styles = StyleSheet.create({
   },
   addTile: {
     borderStyle: 'dashed',
-    borderColor: '#d9dce3',
-    backgroundColor: '#ffffff',
+    borderColor: '#E0E0E0',
+    backgroundColor: '#FAFAFA',
     alignItems: 'center',
     justifyContent: 'center'
   },
   addTileIcon: {
     fontSize: 30,
     lineHeight: 30,
-    color: '#5b5c64',
+    color: '#0A0A0A',
     fontWeight: '300'
   },
   addTileLabel: {
     marginTop: 6,
-    color: '#5b5c64',
+    color: '#0A0A0A',
     fontWeight: '600'
   },
   empty: {
-    color: '#6f7077'
+    color: '#0A0A0A'
   },
   errorText: {
-    color: '#a04f4f',
+    color: '#DC2626',
     fontWeight: '600'
   },
   errorCard: {
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#e3d1d1',
-    backgroundColor: '#f2e6e6',
+    borderColor: '#DC2626',
+    backgroundColor: '#F5F5F5',
     padding: 12,
     gap: 8
   },
   retryButton: {
     alignSelf: 'flex-start',
-    backgroundColor: '#141518',
+    backgroundColor: '#0A0A0A',
     borderRadius: 10,
     paddingVertical: 8,
     paddingHorizontal: 12
   },
   retryButtonText: {
-    color: '#fff',
+    color: '#FAFAFA',
     fontWeight: '700'
   }
 });

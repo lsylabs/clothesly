@@ -112,13 +112,13 @@ export default function AddClosetScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     padding: 16,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#FAFAFA',
     gap: 12
   },
   label: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#1d1e22'
+    color: '#0A0A0A'
   },
   row: {
     flexDirection: 'row',
@@ -131,13 +131,13 @@ const styles = StyleSheet.create({
     width: '100%',
     aspectRatio: 1,
     borderRadius: 16,
-    backgroundColor: '#f4f5f7'
+    backgroundColor: '#F5F5F5'
   },
   primary: {
     marginTop: 8
   },
   errorText: {
-    color: '#a04f4f',
+    color: '#DC2626',
     fontWeight: '600'
   }
 });

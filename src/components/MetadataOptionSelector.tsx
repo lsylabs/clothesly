@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1e1f23'
+    color: '#0A0A0A'
   },
   addButton: {
     borderRadius: 10,
@@ -147,22 +147,22 @@ const styles = StyleSheet.create({
   },
   chip: {
     borderWidth: 1.5,
-    borderColor: '#d9dce3',
+    borderColor: '#E0E0E0',
     borderRadius: 20,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    backgroundColor: '#ffffff'
+    backgroundColor: '#FAFAFA'
   },
   chipSelected: {
-    backgroundColor: '#d9d8de',
-    borderColor: '#bab9c0'
+    backgroundColor: '#E0E0E0',
+    borderColor: '#E0E0E0'
   },
   chipText: {
-    color: '#2d2e33',
+    color: '#0A0A0A',
     fontWeight: '500'
   },
   chipTextSelected: {
-    color: '#111216'
+    color: '#0A0A0A'
   },
   disabled: {
     opacity: 0.65

@@ -203,7 +203,7 @@ export default function AddItemScreen({ navigation }: Props) {
           }
           style={styles.headerCloseTap}
         >
-          <Ionicons color="#232429" name="close" size={22} />
+          <Ionicons color="#0A0A0A" name="close" size={22} />
         </Pressable>
       )
     });
@@ -506,14 +506,14 @@ export default function AddItemScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     padding: 16,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#FAFAFA',
     gap: 12
   },
   sectionTitle: {
     marginTop: 8,
     fontSize: 20,
     fontWeight: '700',
-    color: '#17181b'
+    color: '#0A0A0A'
   },
   row: {
     flexDirection: 'row',
@@ -527,46 +527,46 @@ const styles = StyleSheet.create({
   imageStepTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#17181b'
+    color: '#0A0A0A'
   },
   imageStepBody: {
-    color: '#676770'
+    color: '#0A0A0A'
   },
   mainImage: {
     width: '100%',
     aspectRatio: 4 / 5,
     borderRadius: 16,
-    backgroundColor: '#f4f5f7'
+    backgroundColor: '#F5F5F5'
   },
   secondary: {
     flex: 1,
     borderWidth: 2,
-    borderColor: '#d9dce3',
+    borderColor: '#E0E0E0',
     borderRadius: 14,
     paddingVertical: 12,
     alignItems: 'center',
-    backgroundColor: '#ffffff'
+    backgroundColor: '#FAFAFA'
   },
   secondarySingle: {
     borderWidth: 2,
-    borderColor: '#d9dce3',
+    borderColor: '#E0E0E0',
     borderRadius: 14,
     paddingVertical: 12,
     alignItems: 'center',
-    backgroundColor: '#ffffff'
+    backgroundColor: '#FAFAFA'
   },
   secondaryText: {
-    color: '#232429',
+    color: '#0A0A0A',
     fontWeight: '600'
   },
   fileText: {
-    color: '#676770'
+    color: '#0A0A0A'
   },
   input: {
     borderWidth: 1.5,
-    borderColor: '#d9dce3',
+    borderColor: '#E0E0E0',
     borderRadius: 14,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#FAFAFA',
     paddingHorizontal: 12,
     paddingVertical: 12
   },
@@ -581,25 +581,25 @@ const styles = StyleSheet.create({
   },
   chip: {
     borderWidth: 1.5,
-    borderColor: '#d9dce3',
+    borderColor: '#E0E0E0',
     borderRadius: 20,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    backgroundColor: '#ffffff'
+    backgroundColor: '#FAFAFA'
   },
   chipSelected: {
-    backgroundColor: '#d9d8de',
-    borderColor: '#bab9c0'
+    backgroundColor: '#E0E0E0',
+    borderColor: '#E0E0E0'
   },
   chipText: {
-    color: '#2d2e33',
+    color: '#0A0A0A',
     fontWeight: '500'
   },
   chipTextSelected: {
-    color: '#111216'
+    color: '#0A0A0A'
   },
   muted: {
-    color: '#6f7077'
+    color: '#0A0A0A'
   },
   primary: {
     marginTop: 12
@@ -608,7 +608,7 @@ const styles = StyleSheet.create({
     opacity: 0.65
   },
   errorText: {
-    color: '#a04f4f',
+    color: '#DC2626',
     fontWeight: '600'
   },
   headerCloseTap: {
