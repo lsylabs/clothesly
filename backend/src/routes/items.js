@@ -48,15 +48,17 @@ function parseRequiredName(value) {
   return trimmed;
 }
 
-function parseOptionalText(value, fieldName) {
+function parseOptionalText(value, fieldName, options = {}) {
   if (value === undefined) return undefined;
   if (value === null) return null;
   if (typeof value !== 'string') {
     throw new Error(`Invalid ${fieldName}`);
   }
+  const allowLegacyValues = options.allowLegacyValues instanceof Set ? options.allowLegacyValues : new Set();
   const trimmed = value.trim();
   if (!trimmed) return null;
-  if (trimmed.length > MAX_SHORT_TEXT_LENGTH) {
+  const normalizedKey = trimmed.toLowerCase();
+  if (trimmed.length > MAX_SHORT_TEXT_LENGTH && !allowLegacyValues.has(normalizedKey)) {
     throw new Error(`${fieldName} must be ${MAX_SHORT_TEXT_LENGTH} characters or less`);
   }
   return trimmed;
@@ -136,6 +138,56 @@ function buildNormalizedStringSet(values) {
   return normalized;
 }
 
+function buildNormalizedOptionalTextSet(value) {
+  const normalized = new Set();
+  if (typeof value !== 'string') return normalized;
+  const trimmed = value.trim();
+  if (!trimmed) return normalized;
+  normalized.add(trimmed.toLowerCase());
+  return normalized;
+}
+
+async function loadMetadataOptionAllowlistByCategory({ accessToken, userId, categories }) {
+  const normalizedCategories = Array.from(
+    new Set(categories.filter((entry) => typeof entry === 'string' && entry.trim()).map((entry) => entry.trim()))
+  );
+  const categorySets = Object.fromEntries(normalizedCategories.map((category) => [category, new Set()]));
+  if (!normalizedCategories.length) {
+    return { ok: true, values: categorySets };
+  }
+
+  const categoryFilter = encodeURIComponent(`(${normalizedCategories.join(',')})`);
+  const url =
+    `${config.supabaseUrl}/rest/v1/item_metadata_options` +
+    `?user_id=eq.${encodeURIComponent(userId)}` +
+    `&category=in.${categoryFilter}` +
+    '&select=category,label';
+
+  const { response, body } = await fetchJson(url, {
+    method: 'GET',
+    headers: buildHeaders(accessToken)
+  });
+
+  if (!response.ok) {
+    return {
+      ok: false,
+      upstreamStatus: response.status,
+      upstreamBody: body
+    };
+  }
+
+  const rows = Array.isArray(body) ? body : [];
+  for (const row of rows) {
+    if (!row || typeof row !== 'object') continue;
+    const category = typeof row.category === 'string' ? row.category : '';
+    const label = typeof row.label === 'string' ? row.label.trim() : '';
+    if (!category || !label || !(category in categorySets)) continue;
+    categorySets[category].add(label.toLowerCase());
+  }
+
+  return { ok: true, values: categorySets };
+}
+
 function parseOptionalNotes(value) {
   if (value === undefined) return undefined;
   if (value === null) return '';
@@ -188,11 +240,29 @@ router.post('/v1/items', requireAuth, async (req, res) => {
     if (!body.name || typeof body.name !== 'string' || !body.name.trim()) {
       return res.status(400).json({ error: 'Missing or invalid name' });
     }
+
+    const metadataAllowlistResult = await loadMetadataOptionAllowlistByCategory({
+      accessToken: req.auth.accessToken,
+      userId: req.auth.userId,
+      categories: ['material', 'season']
+    });
+    if (!metadataAllowlistResult.ok) {
+      return res.status(502).json({
+        error: 'Failed to read metadata options',
+        upstreamStatus: metadataAllowlistResult.upstreamStatus,
+        upstreamBody: metadataAllowlistResult.upstreamBody
+      });
+    }
+
     let season;
     let material;
     try {
-      season = parseOptionalStringArray(body.season, 'season');
-      material = parseOptionalStringArray(body.material, 'material');
+      season = parseOptionalStringArray(body.season, 'season', {
+        allowLegacyValues: metadataAllowlistResult.values.season
+      });
+      material = parseOptionalStringArray(body.material, 'material', {
+        allowLegacyValues: metadataAllowlistResult.values.material
+      });
     } catch (validationError) {
       return res.status(400).json({
         error: validationError instanceof Error ? validationError.message : 'Invalid request payload'
@@ -275,9 +345,6 @@ router.patch('/v1/items/:id', requireAuth, async (req, res) => {
         throw new Error('Missing or invalid name');
       }
       name = parseRequiredName(body.name);
-      brand = parseOptionalText(body.brand, 'brand');
-      clothingType = parseOptionalText(body.clothingType, 'clothingType');
-      color = parseOptionalText(body.color, 'color');
       priceAmount = parseOptionalPriceAmount(body.priceAmount);
       priceCurrency = parseOptionalCurrency(body.priceCurrency);
       notes = parseOptionalNotes(body.notes);
@@ -319,6 +386,15 @@ router.patch('/v1/items/:id', requireAuth, async (req, res) => {
     const existingItem = itemRows[0];
 
     try {
+      brand = parseOptionalText(body.brand, 'brand', {
+        allowLegacyValues: buildNormalizedOptionalTextSet(existingItem.brand)
+      });
+      clothingType = parseOptionalText(body.clothingType, 'clothingType', {
+        allowLegacyValues: buildNormalizedOptionalTextSet(existingItem.clothing_type)
+      });
+      color = parseOptionalText(body.color, 'color', {
+        allowLegacyValues: buildNormalizedOptionalTextSet(existingItem.color)
+      });
       material = parseOptionalStringArray(body.material, 'material', {
         allowLegacyValues: buildNormalizedStringSet(existingItem.material)
       });
