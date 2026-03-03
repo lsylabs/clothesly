@@ -62,16 +62,18 @@ export default function AppTabs() {
             right: 14,
             bottom: Math.max(insets.bottom, 8),
             borderTopWidth: 0,
+            borderWidth: 1,
+            borderColor: '#E8E8E8',
             borderRadius: 32,
             height: 72,
             paddingBottom: 9,
             paddingTop: 9,
             backgroundColor: '#FAFAFA',
             shadowColor: '#0A0A0A',
-            shadowOffset: { width: 0, height: 10 },
-            shadowOpacity: 0.08,
-            shadowRadius: 18,
-            elevation: 10
+            shadowOffset: { width: 0, height: 18 },
+            shadowOpacity: 0.18,
+            shadowRadius: 28,
+            elevation: 18
           }
         })}
       >
