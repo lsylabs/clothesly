@@ -63,7 +63,8 @@ export const supabase = createClient<Database>(
       storage: authStorage,
       persistSession: true,
       autoRefreshToken: true,
-      detectSessionInUrl: false
+      detectSessionInUrl: false,
+      flowType: 'pkce'
     }
   }
 );

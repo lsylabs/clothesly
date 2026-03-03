@@ -63,13 +63,17 @@ export default function SignInScreen({ navigation }: Props) {
 
     const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
     if (result.type === 'success' && result.url) {
-      const tokenHash = result.url.match(/access_token=([^&]+)/)?.[1];
-      const refreshToken = result.url.match(/refresh_token=([^&]+)/)?.[1];
-      if (tokenHash && refreshToken) {
-        await supabase.auth.setSession({
-          access_token: decodeURIComponent(tokenHash),
-          refresh_token: decodeURIComponent(refreshToken)
-        });
+      const codeMatch = result.url.match(/[?&]code=([^&]+)/);
+      const authCode = codeMatch?.[1] ? decodeURIComponent(codeMatch[1]) : null;
+
+      if (!authCode) {
+        Alert.alert('Google sign in failed', 'No auth code returned from Google.');
+        return;
+      }
+
+      const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(authCode);
+      if (exchangeError) {
+        Alert.alert('Google sign in failed', exchangeError.message);
       }
     }
   };

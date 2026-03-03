@@ -21,8 +21,16 @@ export function AuthProvider({ children }: PropsWithChildren) {
   useEffect(() => {
     let isMounted = true;
 
-    supabase.auth.getSession().then(({ data }) => {
+    supabase.auth.getSession().then(async ({ data, error }) => {
       if (!isMounted) return;
+
+      if (error?.message?.includes('Invalid Refresh Token')) {
+        await supabase.auth.signOut();
+        setSession(null);
+        setLoading(false);
+        return;
+      }
+
       setSession(data.session ?? null);
       setLoading(false);
     });
