@@ -165,6 +165,13 @@ export default function ProfileScreen() {
     return 'Clothesly User';
   }, [cachedName, email, metadataFullName, profile?.full_name]);
 
+  const nameLines = useMemo(() => {
+    const parts = displayName.split(/\s+/).filter(Boolean);
+    if (!parts.length) return { firstLine: 'Clothesly', secondLine: 'User' };
+    if (parts.length === 1) return { firstLine: parts[0], secondLine: '' };
+    return { firstLine: parts[0], secondLine: parts.slice(1).join(' ') };
+  }, [displayName]);
+
   const initials = useMemo(() => {
     const parts = displayName.split(/\s+/).filter(Boolean);
     if (!parts.length) return 'CU';
@@ -251,8 +258,8 @@ export default function ProfileScreen() {
           </Pressable>
 
           <View style={styles.identityText}>
-            <Text style={styles.nameText}>{loadingProfile ? 'Loading...' : displayName}</Text>
-            <Text style={styles.emailText}>{email}</Text>
+            <Text style={styles.nameText}>{loadingProfile ? 'Loading...' : nameLines.firstLine}</Text>
+            {loadingProfile ? null : nameLines.secondLine ? <Text style={styles.nameText}>{nameLines.secondLine}</Text> : null}
           </View>
         </View>
       </View>
@@ -376,14 +383,10 @@ const styles = StyleSheet.create({
     flex: 1
   },
   nameText: {
-    fontSize: 18,
+    fontSize: 21,
+    lineHeight: 24,
     fontWeight: '700',
     letterSpacing: -1,
-    color: '#0A0A0A'
-  },
-  emailText: {
-    marginTop: 4,
-    fontSize: 16,
     color: '#0A0A0A'
   },
   warning: {

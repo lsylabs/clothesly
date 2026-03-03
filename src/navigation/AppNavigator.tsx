@@ -48,14 +48,18 @@ export default function AppNavigator() {
         component={ItemDetailScreen}
         name="ItemDetail"
         options={{
-          headerShown: false
+          headerShown: false,
+          animation: 'slide_from_right',
+          animationDuration: 220
         }}
       />
       <Stack.Screen
         component={ClosetItemsScreen}
         name="ClosetItems"
         options={{
-          headerShown: false
+          headerShown: false,
+          animation: 'slide_from_right',
+          animationDuration: 220
         }}
       />
     </Stack.Navigator>
