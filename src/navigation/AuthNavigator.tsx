@@ -10,7 +10,9 @@ export default function AuthNavigator() {
   return (
     <Stack.Navigator
       screenOptions={{
-        headerShown: false
+        headerShown: false,
+        animation: 'fade_from_bottom',
+        animationDuration: 170
       }}
     >
       <Stack.Screen component={SignInScreen} name="SignIn" />

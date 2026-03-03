@@ -20,7 +20,9 @@ export default function AppNavigator() {
         headerTintColor: '#0A0A0A',
         contentStyle: { backgroundColor: '#FAFAFA' },
         headerBackTitleVisible: false,
-        headerShadowVisible: false
+        headerShadowVisible: false,
+        animation: 'fade_from_bottom',
+        animationDuration: 170
       }}
     >
       <Stack.Screen component={AppTabs} name="Tabs" options={{ headerShown: false }} />

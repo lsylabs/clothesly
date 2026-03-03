@@ -8,6 +8,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import AddActionSheet from '../components/AddActionSheet';
+import { withScreenFadeTransition } from '../components/ui/ScreenFadeTransition';
 import HomeScreen from '../screens/tabs/HomeScreen';
 import OutfitsScreen from '../screens/tabs/OutfitsScreen';
 import ProfileScreen from '../screens/tabs/ProfileScreen';
@@ -21,6 +22,10 @@ const TAB_ICON_BY_ROUTE = {
   Outfits: 'sparkles-outline',
   Profile: 'person-outline'
 } as const;
+const HomeWithTransition = withScreenFadeTransition(HomeScreen);
+const WardrobeWithTransition = withScreenFadeTransition(WardrobeScreen);
+const OutfitsWithTransition = withScreenFadeTransition(OutfitsScreen);
+const ProfileWithTransition = withScreenFadeTransition(ProfileScreen);
 
 function CenterAddButton({ onPress, bottomInset }: { onPress: () => void; bottomInset: number }) {
   return (
@@ -77,8 +82,8 @@ export default function AppTabs() {
           }
         })}
       >
-        <Tab.Screen component={HomeScreen} name="Home" />
-        <Tab.Screen component={WardrobeScreen} name="Wardrobe" />
+        <Tab.Screen component={HomeWithTransition} name="Home" />
+        <Tab.Screen component={WardrobeWithTransition} name="Wardrobe" />
         <Tab.Screen
           component={View}
           listeners={{
@@ -94,8 +99,8 @@ export default function AppTabs() {
             tabBarButton: () => <CenterAddButton bottomInset={insets.bottom} onPress={() => setSheetVisible(true)} />
           }}
         />
-        <Tab.Screen component={OutfitsScreen} name="Outfits" />
-        <Tab.Screen component={ProfileScreen} name="Profile" />
+        <Tab.Screen component={OutfitsWithTransition} name="Outfits" />
+        <Tab.Screen component={ProfileWithTransition} name="Profile" />
       </Tab.Navigator>
       <AddActionSheet
         onAddItem={() => {
