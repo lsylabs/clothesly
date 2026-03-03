@@ -1,6 +1,8 @@
-import type { Json } from '../types/database';
+import type { Database, Json } from '../types/database';
 import { env } from '../config/env';
 import { supabase } from './supabase';
+
+type ItemRow = Database['public']['Tables']['clothing_items']['Row'];
 
 export type CreateItemInput = {
   userId: string;
@@ -288,4 +290,79 @@ export async function finalizeItemViaBackend(input: {
     throw new Error(message);
   }
   return body;
+}
+
+export type UpdateItemViaBackendInput = {
+  accessToken: string;
+  itemId: string;
+  name: string;
+  brand?: string;
+  clothingType?: string;
+  color?: string;
+  priceAmount?: string;
+  priceCurrency?: string;
+  material?: string[];
+  season?: string[];
+  notes?: string;
+  closetIds?: string[];
+};
+
+export type UpdateItemViaBackendResult = {
+  ok: true;
+  item: ItemRow;
+  closetIds: string[];
+  closets: Array<{ id: string; name: string }>;
+};
+
+export async function updateItemViaBackend(input: UpdateItemViaBackendInput) {
+  const baseUrl = env.backendUrl.trim().replace(/\/+$/, '');
+  if (!baseUrl) {
+    throw new Error('Backend URL is not configured. Set EXPO_PUBLIC_BACKEND_URL.');
+  }
+
+  const response = await fetch(`${baseUrl}/v1/items/${encodeURIComponent(input.itemId)}`, {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${input.accessToken}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      name: input.name,
+      brand: input.brand,
+      clothingType: input.clothingType,
+      color: input.color,
+      priceAmount: input.priceAmount,
+      priceCurrency: input.priceCurrency,
+      material: input.material,
+      season: input.season,
+      notes: input.notes,
+      closetIds: input.closetIds
+    })
+  });
+
+  const body = await response.json().catch(() => null);
+  if (!response.ok) {
+    const message =
+      typeof body === 'object' && body && 'error' in body && typeof (body as { error?: unknown }).error === 'string'
+        ? (body as { error: string }).error
+        : `Update failed with status ${response.status}`;
+    throw new Error(message);
+  }
+
+  if (
+    !body ||
+    typeof body !== 'object' ||
+    !('ok' in body) ||
+    (body as { ok: unknown }).ok !== true ||
+    !('item' in body) ||
+    typeof (body as { item?: unknown }).item !== 'object' ||
+    !('closetIds' in body) ||
+    !Array.isArray((body as { closetIds?: unknown }).closetIds) ||
+    !('closets' in body) ||
+    !Array.isArray((body as { closets?: unknown }).closets)
+  ) {
+    throw new Error('Invalid update response shape from backend');
+  }
+
+  return body as UpdateItemViaBackendResult;
 }

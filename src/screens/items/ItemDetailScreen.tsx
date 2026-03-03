@@ -28,8 +28,7 @@ import {
   getItem,
   listItemClosetMappings,
   listItemImages,
-  replaceItemClosetMappings,
-  updateItemCategories
+  updateItemViaBackend
 } from '../../services/itemService';
 import { refreshWardrobeData } from '../../services/wardrobeDataService';
 import type { Database, Json } from '../../types/database';
@@ -350,23 +349,15 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
         return false;
       }
 
-      const trimmedNotes = notes.trim();
-      const currentCustomFields = item.custom_fields;
-      let nextCustomFields: Json | null = null;
-      if (currentCustomFields && typeof currentCustomFields === 'object' && !Array.isArray(currentCustomFields)) {
-        const next = { ...(currentCustomFields as Record<string, unknown>) };
-        if (trimmedNotes) {
-          next.notes = trimmedNotes;
-        } else {
-          delete next.notes;
-        }
-        nextCustomFields = Object.keys(next).length ? (next as Json) : null;
-      } else if (trimmedNotes) {
-        nextCustomFields = { notes: trimmedNotes } as Json;
+      const accessToken = session?.access_token;
+      if (!accessToken) {
+        if (mountedRef.current) setErrorText('You need to sign in again before saving changes.');
+        return false;
       }
 
-      const updated = await withRetry(() =>
-        updateItemCategories({
+      const updateResult = await withRetry(() =>
+        updateItemViaBackend({
+          accessToken,
           itemId: item.id,
           name: itemName,
           brand: selectedBrands.join(', '),
@@ -376,16 +367,22 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
           priceCurrency,
           material: selectedMaterials,
           season: selectedSeasons,
-          customFields: nextCustomFields
+          notes,
+          closetIds: selectedClosetIds
         })
       );
-      await withRetry(() => replaceItemClosetMappings(item.id, selectedClosetIds));
+      const updated = updateResult.item;
+      const nextSavedClosetIds = updateResult.closetIds;
+      const nextSavedClosetNames = updateResult.closets.map((closet) => closet.name);
+
       setItem(updated);
-      setSavedClosetIds([...selectedClosetIds]);
+      setSelectedClosetIds(nextSavedClosetIds);
+      setSavedClosetIds(nextSavedClosetIds);
+      setCachedSelectedClosetNames(nextSavedClosetNames);
       await setCachedItemDetail(item.id, {
         item: updated,
         extraImages,
-        selectedClosetNames,
+        selectedClosetNames: nextSavedClosetNames,
         primaryImageUrl,
         cachedAt: Date.now()
       });
@@ -411,11 +408,11 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
     primaryImageUrl,
     selectedBrands,
     selectedClosetIds,
-    selectedClosetNames,
     selectedColors,
     selectedMaterials,
     selectedSeasons,
     selectedTypes,
+    session?.access_token,
     session?.user.id
   ]);
 

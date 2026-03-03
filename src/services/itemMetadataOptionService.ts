@@ -1,6 +1,13 @@
 import { supabase } from './supabase';
 
 export type ItemMetadataCategory = 'brand' | 'clothing_type' | 'color' | 'material' | 'season';
+const MAX_METADATA_OPTION_LENGTH: Record<ItemMetadataCategory, number> = {
+  brand: 120,
+  clothing_type: 120,
+  color: 120,
+  material: 40,
+  season: 40
+};
 
 export type ItemMetadataOptionRow = {
   id: string;
@@ -22,6 +29,14 @@ export async function createItemMetadataOption(input: {
   label: string;
 }) {
   const trimmedLabel = input.label.trim();
+  const maxLength = MAX_METADATA_OPTION_LENGTH[input.category];
+  if (trimmedLabel.length > maxLength) {
+    const categoryLabel =
+      input.category === 'clothing_type'
+        ? 'Clothing type'
+        : input.category.charAt(0).toUpperCase() + input.category.slice(1);
+    throw new Error(`${categoryLabel} options must be ${maxLength} characters or less`);
+  }
   const { data, error } = await supabase
     .from('item_metadata_options')
     .upsert(
