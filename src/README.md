@@ -69,6 +69,7 @@ The app uses service modules as the only place for network/storage side effects.
 - `services/itemService.ts`: item CRUD, item images, closet mappings, plus backend-assisted item endpoints
 - `services/closetService.ts`: closet CRUD
 - `services/itemMetadataOptionService.ts`: user-custom metadata options
+- `services/profileService.ts`: profile fetch/update helpers (for example avatar path updates)
 - `services/mediaService.ts`: image picking, upload/delete, signed URL creation
 - `services/storagePaths.ts`: deterministic storage paths for avatars/closets/items
 
@@ -127,6 +128,12 @@ This flow keeps DB writes coordinated and avoids orphaned partial state.
 - Loads item, extra images, closets, mappings, metadata options in parallel
 - Supports category metadata updates
 - Supports delete via backend endpoint (fallback to direct DB delete)
+
+### Profile
+
+- Loads current user profile row (`profiles`)
+- Resolves avatar image from storage path to signed/local cached URL
+- Allows avatar updates via picker/camera -> storage upload -> `profiles.avatar_path` update
 
 ## Type System Strategy
 
