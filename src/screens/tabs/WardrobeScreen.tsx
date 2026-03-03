@@ -3,6 +3,7 @@ import { ActivityIndicator, Image, Pressable, RefreshControl, ScrollView, StyleS
 
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import ItemCollectionView from '../../components/ItemCollectionView';
 import PageTitle from '../../components/ui/PageTitle';
@@ -21,6 +22,7 @@ const REFRESH_STALE_MS = 30_000;
 export default function WardrobeScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>();
   const { session } = useAuth();
+  const insets = useSafeAreaInsets();
   const userId = session?.user.id;
 
   const [viewMode, setViewMode] = useState<ViewMode>('closets');
@@ -221,7 +223,7 @@ export default function WardrobeScreen() {
       </View>
 
       <ScrollView
-        contentContainerStyle={styles.container}
+        contentContainerStyle={[styles.container, { paddingBottom: Math.max(insets.bottom + 92, 110) }]}
         refreshControl={<RefreshControl onRefresh={handleRefresh} refreshing={refreshing} tintColor="#0A0A0A" />}
       >
         {loading && !hasLoadedOnce ? (
