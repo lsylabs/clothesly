@@ -278,12 +278,21 @@ export default function ProfileScreen() {
       </View>
 
       <Pressable
-        onPress={async () => {
-          const { error } = await signOut().then(() => ({ error: null })).catch((e: Error) => ({ error: e }));
-          if (error) {
-            Alert.alert('Sign out failed', error.message);
-          }
-        }}
+        onPress={() =>
+          Alert.alert('Sign out?', 'Are you sure you want to sign out?', [
+            { text: 'Cancel', style: 'cancel' },
+            {
+              text: 'Sign Out',
+              style: 'destructive',
+              onPress: async () => {
+                const { error } = await signOut().then(() => ({ error: null })).catch((e: Error) => ({ error: e }));
+                if (error) {
+                  Alert.alert('Sign out failed', error.message);
+                }
+              }
+            }
+          ])
+        }
         style={styles.signOut}
       >
         <Ionicons color="#DC2626" name="log-out-outline" size={28} />
@@ -437,14 +446,16 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     borderWidth: 1.5,
     borderColor: '#DC2626',
-    minHeight: 78,
+    minHeight: 58,
+    alignSelf: 'center',
+    width: '68%',
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
     gap: 10
   },
   signOutText: {
-    fontSize: 23,
+    fontSize: 20,
     fontWeight: '500',
     color: '#DC2626'
   },
