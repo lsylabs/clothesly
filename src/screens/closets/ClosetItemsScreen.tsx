@@ -34,30 +34,61 @@ export default function ClosetItemsScreen({ navigation, route }: Props) {
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const [lastLoadedAt, setLastLoadedAt] = useState<number | null>(null);
   const [isActionSheetVisible, setActionSheetVisible] = useState(false);
+  const [isActionSheetMounted, setActionSheetMounted] = useState(false);
   const [deletingCloset, setDeletingCloset] = useState(false);
   const insets = useSafeAreaInsets();
   const backdropOpacity = useRef(new Animated.Value(0)).current;
   const sheetTranslateY = useRef(new Animated.Value(22)).current;
 
+  const openActionSheet = useCallback(() => {
+    setActionSheetMounted(true);
+    setActionSheetVisible(true);
+  }, []);
+
+  const closeActionSheet = useCallback(() => {
+    setActionSheetVisible(false);
+  }, []);
+
   useEffect(() => {
-    if (!isActionSheetVisible) return;
-    backdropOpacity.setValue(0);
-    sheetTranslateY.setValue(22);
+    if (isActionSheetVisible) {
+      backdropOpacity.setValue(0);
+      sheetTranslateY.setValue(22);
+      Animated.parallel([
+        Animated.timing(backdropOpacity, {
+          toValue: 1,
+          duration: 140,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true
+        }),
+        Animated.timing(sheetTranslateY, {
+          toValue: 0,
+          duration: 220,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true
+        })
+      ]).start();
+      return;
+    }
+    if (!isActionSheetMounted) return;
     Animated.parallel([
       Animated.timing(backdropOpacity, {
-        toValue: 1,
-        duration: 110,
-        easing: Easing.out(Easing.quad),
+        toValue: 0,
+        duration: 120,
+        easing: Easing.in(Easing.quad),
         useNativeDriver: true
       }),
       Animated.timing(sheetTranslateY, {
-        toValue: 0,
-        duration: 180,
-        easing: Easing.out(Easing.cubic),
+        toValue: 22,
+        duration: 170,
+        easing: Easing.in(Easing.cubic),
         useNativeDriver: true
       })
-    ]).start();
-  }, [backdropOpacity, isActionSheetVisible, sheetTranslateY]);
+    ]).start(({ finished }) => {
+      if (finished) {
+        setActionSheetMounted(false);
+      }
+    });
+  }, [backdropOpacity, isActionSheetMounted, isActionSheetVisible, sheetTranslateY]);
 
   const applyData = useCallback((data: { items: ItemRow[]; mappings: MappingRow[]; loadedAt: number }) => {
     setItems(data.items);
@@ -165,7 +196,7 @@ export default function ClosetItemsScreen({ navigation, route }: Props) {
   const handleDeleteCloset = useCallback(async () => {
     if (deletingCloset) return;
     setDeletingCloset(true);
-    setActionSheetVisible(false);
+    closeActionSheet();
     try {
       await withRetry(() => deleteCloset(closetId));
       if (userId) {
@@ -178,7 +209,7 @@ export default function ClosetItemsScreen({ navigation, route }: Props) {
     } finally {
       setDeletingCloset(false);
     }
-  }, [closetId, deletingCloset, navigation, userId]);
+  }, [closeActionSheet, closetId, deletingCloset, navigation, userId]);
 
   return (
     <>
@@ -197,7 +228,7 @@ export default function ClosetItemsScreen({ navigation, route }: Props) {
           <Text numberOfLines={1} style={styles.headerTitle}>
             {closetName}
           </Text>
-          <Pressable hitSlop={8} onPress={() => setActionSheetVisible(true)} style={styles.headerButton}>
+          <Pressable hitSlop={8} onPress={openActionSheet} style={styles.headerButton}>
             <Ionicons color="#0A0A0A" name="ellipsis-horizontal" size={22} />
           </Pressable>
         </View>
@@ -219,9 +250,9 @@ export default function ClosetItemsScreen({ navigation, route }: Props) {
         />
       </ScrollView>
 
-      <Modal animationType="none" transparent visible={isActionSheetVisible}>
+      <Modal animationType="none" transparent visible={isActionSheetMounted}>
         <Animated.View style={[styles.sheetBackdrop, { opacity: backdropOpacity }]}>
-          <Pressable onPress={() => setActionSheetVisible(false)} style={StyleSheet.absoluteFillObject} />
+          <Pressable onPress={closeActionSheet} style={StyleSheet.absoluteFillObject} />
           <Animated.View
             style={[
               styles.sheet,
@@ -231,13 +262,13 @@ export default function ClosetItemsScreen({ navigation, route }: Props) {
           >
             <View style={styles.sheetHeader}>
               <Text style={styles.sheetTitle}>Closet Actions</Text>
-              <Pressable hitSlop={8} onPress={() => setActionSheetVisible(false)} style={styles.sheetCloseButton}>
+              <Pressable hitSlop={8} onPress={closeActionSheet} style={styles.sheetCloseButton}>
                 <Ionicons color="#0A0A0A" name="close-outline" size={22} />
               </Pressable>
             </View>
             <Pressable
               onPress={() => {
-                setActionSheetVisible(false);
+                closeActionSheet();
                 Alert.alert('Coming soon', 'Edit Closet settings will be available soon.');
               }}
               style={styles.sheetAction}
@@ -247,7 +278,7 @@ export default function ClosetItemsScreen({ navigation, route }: Props) {
             </Pressable>
             <Pressable
               onPress={() => {
-                setActionSheetVisible(false);
+                closeActionSheet();
                 Alert.alert('Coming soon', 'Custom item ordering will be available soon.');
               }}
               style={styles.sheetAction}
@@ -257,7 +288,7 @@ export default function ClosetItemsScreen({ navigation, route }: Props) {
             </Pressable>
             <Pressable
               onPress={() => {
-                setActionSheetVisible(false);
+                closeActionSheet();
                 Alert.alert('Coming soon', 'Selection tools will be available soon.');
               }}
               style={styles.sheetAction}
@@ -271,10 +302,7 @@ export default function ClosetItemsScreen({ navigation, route }: Props) {
                 Alert.alert(
                   'Delete closet?',
                   'This will remove the closet and detach all items from it.',
-                  [
-                    { text: 'Cancel', style: 'cancel' },
-                    { text: 'Delete', style: 'destructive', onPress: () => void handleDeleteCloset() }
-                  ]
+                  [{ text: 'Cancel', style: 'cancel' }, { text: 'Delete', style: 'destructive', onPress: () => void handleDeleteCloset() }]
                 )
               }
               style={[styles.sheetAction, deletingCloset && styles.disabled]}
