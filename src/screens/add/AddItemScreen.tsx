@@ -8,7 +8,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MetadataOptionSelector from '../../components/MetadataOptionSelector';
 import AppButton from '../../components/ui/AppButton';
 import AppTextInput from '../../components/ui/AppTextInput';
-import SectionHeader from '../../components/ui/SectionHeader';
 import {
   DEFAULT_ITEM_METADATA_OPTIONS,
   EMPTY_ITEM_METADATA_OPTIONS,
@@ -323,12 +322,18 @@ export default function AddItemScreen({ navigation }: Props) {
         >
           <Ionicons color="#0A0A0A" name="close" size={22} />
         </Pressable>
-        <Text style={styles.customHeaderTitle}>Add Item</Text>
+        <View style={styles.headerTextWrap}>
+          <Text style={styles.customHeaderTitle}>Add Item</Text>
+          <Text style={styles.customHeaderSubtitle}>Capture details and save to your wardrobe</Text>
+        </View>
         <View style={styles.headerSpacer} />
       </View>
 
       {!primaryImage ? (
         <View style={styles.imageStep}>
+          <View style={styles.imageStepIconWrap}>
+            <Ionicons color="#0A0A0A" name="image-outline" size={24} />
+          </View>
           <Text style={styles.imageStepTitle}>Add A Main Image</Text>
           <Text style={styles.imageStepBody}>Start by adding a photo of your item.</Text>
           <View style={styles.row}>
@@ -362,138 +367,151 @@ export default function AddItemScreen({ navigation }: Props) {
 
       {primaryImage ? (
         <>
-          <Text style={styles.sectionTitle}>Item Photo</Text>
-          <Image source={{ uri: primaryImage.uri }} style={styles.mainImage} />
-          <View style={styles.row}>
-            <Pressable
-              disabled={loading}
-              onPress={async () => {
-                try {
-                  const image = await pickImageFromCamera();
+          <View style={styles.card}>
+            <Text style={styles.sectionEyebrow}>Photo</Text>
+            <Text style={styles.sectionTitle}>Item Photo</Text>
+            <Image source={{ uri: primaryImage.uri }} style={styles.mainImage} />
+            <View style={styles.row}>
+              <Pressable
+                disabled={loading}
+                onPress={async () => {
+                  try {
+                    const image = await pickImageFromCamera();
+                    if (image) setPrimaryImage(image);
+                  } catch (error) {
+                    Alert.alert('Camera error', error instanceof Error ? error.message : 'Could not open camera');
+                  }
+                }}
+                style={[styles.secondary, loading && styles.disabled]}
+              >
+                <Text style={styles.secondaryText}>Retake</Text>
+              </Pressable>
+              <Pressable
+                disabled={loading}
+                onPress={async () => {
+                  const image = await pickImageFromLibrary();
                   if (image) setPrimaryImage(image);
-                } catch (error) {
-                  Alert.alert('Camera error', error instanceof Error ? error.message : 'Could not open camera');
-                }
-              }}
-              style={[styles.secondary, loading && styles.disabled]}
-            >
-              <Text style={styles.secondaryText}>Retake</Text>
-            </Pressable>
-            <Pressable
-              disabled={loading}
-              onPress={async () => {
-                const image = await pickImageFromLibrary();
-                if (image) setPrimaryImage(image);
-              }}
-              style={[styles.secondary, loading && styles.disabled]}
-            >
-              <Text style={styles.secondaryText}>Replace</Text>
-            </Pressable>
+                }}
+                style={[styles.secondary, loading && styles.disabled]}
+              >
+                <Text style={styles.secondaryText}>Replace</Text>
+              </Pressable>
+            </View>
           </View>
 
-          <SectionHeader title="Item Details" />
-          <AppTextInput editable={!loading} onChangeText={setName} placeholder="Item Name *" style={styles.input} value={name} />
-          <MetadataOptionSelector
-            disabled={loading}
-            label="Brand"
-            onAddCustomOption={async (value) => handleAddCustomOption('brand', value)}
-            onToggle={(value) => setSelectedBrands((current) => toggleMetadataOption(current, value))}
-            options={brandOptions}
-            selected={selectedBrands}
-          />
-          <MetadataOptionSelector
-            disabled={loading}
-            label="Clothing Type"
-            onAddCustomOption={async (value) => handleAddCustomOption('clothing_type', value)}
-            onToggle={(value) => setSelectedClothingTypes((current) => toggleMetadataOption(current, value))}
-            options={clothingTypeOptions}
-            selected={selectedClothingTypes}
-          />
-          <MetadataOptionSelector
-            disabled={loading}
-            label="Color"
-            onAddCustomOption={async (value) => handleAddCustomOption('color', value)}
-            onToggle={(value) => setSelectedColors((current) => toggleMetadataOption(current, value))}
-            options={colorOptions}
-            selected={selectedColors}
-          />
-          <AppTextInput
-            editable={!loading}
-            keyboardType="decimal-pad"
-            onChangeText={setPriceAmount}
-            placeholder="Price (e.g. 39.99)"
-            style={styles.input}
-            value={priceAmount}
-          />
-          <AppTextInput
-            autoCapitalize="characters"
-            editable={!loading}
-            maxLength={3}
-            onChangeText={setPriceCurrency}
-            placeholder="Currency (USD)"
-            style={styles.input}
-            value={priceCurrency}
-          />
-          <MetadataOptionSelector
-            disabled={loading}
-            label="Materials"
-            onAddCustomOption={async (value) => handleAddCustomOption('material', value)}
-            onToggle={(value) => setSelectedMaterials((current) => toggleMetadataOption(current, value))}
-            options={materialOptions}
-            selected={selectedMaterials}
-          />
-          <MetadataOptionSelector
-            disabled={loading}
-            label="Seasons"
-            onAddCustomOption={async (value) => handleAddCustomOption('season', value)}
-            onToggle={(value) => setSelectedSeasons((current) => toggleMetadataOption(current, value))}
-            options={seasonOptions}
-            selected={selectedSeasons}
-          />
-          <AppTextInput
-            editable={!loading}
-            multiline
-            onChangeText={setCustomFieldsText}
-            placeholder='Custom Fields JSON, e.g. {"fit":"oversized"}'
-            style={[styles.input, styles.textArea]}
-            value={customFieldsText}
-          />
+          <View style={styles.card}>
+            <Text style={styles.sectionEyebrow}>Details</Text>
+            <Text style={styles.sectionTitle}>Item Details</Text>
+            <AppTextInput editable={!loading} onChangeText={setName} placeholder="Item Name *" style={styles.input} value={name} />
+            <MetadataOptionSelector
+              disabled={loading}
+              label="Brand"
+              onAddCustomOption={async (value) => handleAddCustomOption('brand', value)}
+              onToggle={(value) => setSelectedBrands((current) => toggleMetadataOption(current, value))}
+              options={brandOptions}
+              selected={selectedBrands}
+            />
+            <MetadataOptionSelector
+              disabled={loading}
+              label="Clothing Type"
+              onAddCustomOption={async (value) => handleAddCustomOption('clothing_type', value)}
+              onToggle={(value) => setSelectedClothingTypes((current) => toggleMetadataOption(current, value))}
+              options={clothingTypeOptions}
+              selected={selectedClothingTypes}
+            />
+            <MetadataOptionSelector
+              disabled={loading}
+              label="Color"
+              onAddCustomOption={async (value) => handleAddCustomOption('color', value)}
+              onToggle={(value) => setSelectedColors((current) => toggleMetadataOption(current, value))}
+              options={colorOptions}
+              selected={selectedColors}
+            />
+            <AppTextInput
+              editable={!loading}
+              keyboardType="decimal-pad"
+              onChangeText={setPriceAmount}
+              placeholder="Price (e.g. 39.99)"
+              style={styles.input}
+              value={priceAmount}
+            />
+            <AppTextInput
+              autoCapitalize="characters"
+              editable={!loading}
+              maxLength={3}
+              onChangeText={setPriceCurrency}
+              placeholder="Currency (USD)"
+              style={styles.input}
+              value={priceCurrency}
+            />
+            <MetadataOptionSelector
+              disabled={loading}
+              label="Materials"
+              onAddCustomOption={async (value) => handleAddCustomOption('material', value)}
+              onToggle={(value) => setSelectedMaterials((current) => toggleMetadataOption(current, value))}
+              options={materialOptions}
+              selected={selectedMaterials}
+            />
+            <MetadataOptionSelector
+              disabled={loading}
+              label="Seasons"
+              onAddCustomOption={async (value) => handleAddCustomOption('season', value)}
+              onToggle={(value) => setSelectedSeasons((current) => toggleMetadataOption(current, value))}
+              options={seasonOptions}
+              selected={selectedSeasons}
+            />
+            <AppTextInput
+              editable={!loading}
+              multiline
+              onChangeText={setCustomFieldsText}
+              placeholder='Custom Fields JSON, e.g. {"fit":"oversized"}'
+              style={[styles.input, styles.textArea]}
+              value={customFieldsText}
+            />
+          </View>
 
-          <Text style={styles.sectionTitle}>Closets</Text>
-          {closets.length ? (
-            <View style={styles.closetList}>
-              {closets.map((closet) => {
-                const selected = selectedClosetIds.includes(closet.id);
-                return (
-                  <Pressable
-                    key={closet.id}
-                  onPress={() => {
-                    if (loading) return;
-                    setSelectedClosetIds((current) => (selected ? current.filter((id) => id !== closet.id) : [...current, closet.id]));
-                  }}
-                    style={[styles.chip, selected && styles.chipSelected]}
-                  >
-                    <Text style={[styles.chipText, selected && styles.chipTextSelected]}>{closet.name}</Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-          ) : (
-            <Text style={styles.muted}>No closets yet. You can still save item with no closet.</Text>
-          )}
+          <View style={styles.card}>
+            <Text style={styles.sectionEyebrow}>Organize</Text>
+            <Text style={styles.sectionTitle}>Closets</Text>
+            {closets.length ? (
+              <View style={styles.closetList}>
+                {closets.map((closet) => {
+                  const selected = selectedClosetIds.includes(closet.id);
+                  return (
+                    <Pressable
+                      key={closet.id}
+                      onPress={() => {
+                        if (loading) return;
+                        setSelectedClosetIds((current) => (selected ? current.filter((id) => id !== closet.id) : [...current, closet.id]));
+                      }}
+                      style={[styles.chip, selected && styles.chipSelected]}
+                    >
+                      <Text style={[styles.chipText, selected && styles.chipTextSelected]}>{closet.name}</Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            ) : (
+              <Text style={styles.muted}>No closets yet. You can still save item with no closet.</Text>
+            )}
+          </View>
 
-          <Text style={styles.sectionTitle}>Extra Outfit Photos (optional)</Text>
-          <AppButton
-            disabled={loading}
-            label="Add Extra Photo"
-            onPress={async () => {
-              const image = await pickImageFromLibrary();
-              if (image) setExtraImages((current) => [...current, image]);
-            }}
-            style={styles.secondarySingle}
-            variant="secondary"
-          />
-          <Text style={styles.fileText}>{extraImages.length ? `${extraImages.length} extra image(s) selected` : 'No extra images selected'}</Text>
+          <View style={styles.card}>
+            <Text style={styles.sectionEyebrow}>Outfit</Text>
+            <Text style={styles.sectionTitle}>Extra Photos (optional)</Text>
+            <AppButton
+              disabled={loading}
+              label="Add Extra Photo"
+              onPress={async () => {
+                const image = await pickImageFromLibrary();
+                if (image) setExtraImages((current) => [...current, image]);
+              }}
+              style={styles.secondarySingle}
+              variant="secondary"
+            />
+            <Text style={styles.fileText}>{extraImages.length ? `${extraImages.length} extra image(s) selected` : 'No extra images selected'}</Text>
+          </View>
+
           {errorText ? <Text style={styles.errorText}>{errorText}</Text> : null}
 
           <AppButton label="Save Item" loading={loading} loadingLabel="Saving..." onPress={handleSave} style={styles.primary} />
@@ -509,47 +527,98 @@ const styles = StyleSheet.create({
     backgroundColor: '#FAFAFA'
   },
   container: {
-    padding: 16,
+    padding: 18,
     backgroundColor: '#FAFAFA',
     flexGrow: 1,
-    gap: 12
+    gap: 14
   },
   customHeader: {
-    marginBottom: 8,
+    marginBottom: 10,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between'
   },
+  headerTextWrap: {
+    flex: 1,
+    alignItems: 'center',
+    paddingHorizontal: 12
+  },
   customHeaderTitle: {
-    fontSize: 20,
+    fontSize: 26,
     fontWeight: '700',
-    color: '#0A0A0A'
+    color: '#0A0A0A',
+    letterSpacing: -0.8
+  },
+  customHeaderSubtitle: {
+    marginTop: 3,
+    fontSize: 13,
+    color: '#5A5A61'
   },
   headerSpacer: {
     width: 30
   },
-  sectionTitle: {
-    marginTop: 8,
-    fontSize: 20,
+  sectionEyebrow: {
+    fontSize: 12,
     fontWeight: '700',
-    color: '#0A0A0A'
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+    color: '#8B8B93',
+    marginBottom: 4
+  },
+  sectionTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#0A0A0A',
+    letterSpacing: -0.7,
+    marginBottom: 10
   },
   row: {
     flexDirection: 'row',
     gap: 12
   },
+  card: {
+    borderRadius: 24,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E9E9EE',
+    padding: 16,
+    gap: 10,
+    shadowColor: '#0A0A0A',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 18,
+    elevation: 6
+  },
   imageStep: {
-    minHeight: 280,
+    minHeight: 320,
     justifyContent: 'center',
-    gap: 12
+    gap: 12,
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
+    borderColor: '#CFCFD6',
+    borderRadius: 26,
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 18,
+    paddingVertical: 24
+  },
+  imageStepIconWrap: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F5F5F8'
   },
   imageStepTitle: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '700',
-    color: '#0A0A0A'
+    color: '#0A0A0A',
+    letterSpacing: -0.6
   },
   imageStepBody: {
-    color: '#0A0A0A'
+    color: '#5A5A61',
+    fontSize: 15,
+    lineHeight: 22
   },
   mainImage: {
     width: '100%',
@@ -559,20 +628,20 @@ const styles = StyleSheet.create({
   },
   secondary: {
     flex: 1,
-    borderWidth: 2,
-    borderColor: '#E0E0E0',
+    borderWidth: 1.5,
+    borderColor: '#D9D9DF',
     borderRadius: 14,
     paddingVertical: 12,
     alignItems: 'center',
-    backgroundColor: '#FAFAFA'
+    backgroundColor: '#F7F7FA'
   },
   secondarySingle: {
-    borderWidth: 2,
-    borderColor: '#E0E0E0',
+    borderWidth: 1.5,
+    borderColor: '#D9D9DF',
     borderRadius: 14,
     paddingVertical: 12,
     alignItems: 'center',
-    backgroundColor: '#FAFAFA'
+    backgroundColor: '#F7F7FA'
   },
   secondaryText: {
     color: '#0A0A0A',
@@ -583,9 +652,9 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1.5,
-    borderColor: '#E0E0E0',
+    borderColor: '#DFDFE6',
     borderRadius: 14,
-    backgroundColor: '#FAFAFA',
+    backgroundColor: '#FBFBFD',
     paddingHorizontal: 12,
     paddingVertical: 12
   },
@@ -600,15 +669,15 @@ const styles = StyleSheet.create({
   },
   chip: {
     borderWidth: 1.5,
-    borderColor: '#E0E0E0',
+    borderColor: '#DFDFE6',
     borderRadius: 20,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    backgroundColor: '#FAFAFA'
+    backgroundColor: '#FBFBFD'
   },
   chipSelected: {
-    backgroundColor: '#E0E0E0',
-    borderColor: '#E0E0E0'
+    backgroundColor: '#ECECF2',
+    borderColor: '#D6D6E0'
   },
   chipText: {
     color: '#0A0A0A',
@@ -618,10 +687,11 @@ const styles = StyleSheet.create({
     color: '#0A0A0A'
   },
   muted: {
-    color: '#0A0A0A'
+    color: '#5A5A61'
   },
   primary: {
-    marginTop: 12
+    marginTop: 4,
+    marginBottom: 18
   },
   disabled: {
     opacity: 0.65
