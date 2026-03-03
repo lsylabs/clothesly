@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text } from 'react-native';
+import { Alert, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import Ionicons from '@expo/vector-icons/Ionicons';
 import * as AuthSession from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -20,6 +21,7 @@ export default function SignInScreen({ navigation }: Props) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSignIn = async () => {
     if (!email || !password) {
@@ -80,31 +82,58 @@ export default function SignInScreen({ navigation }: Props) {
 
   return (
     <SafeAreaView edges={['top', 'bottom']} style={styles.container}>
-      <Text style={styles.title}>Clothesly</Text>
-      <Text style={styles.subtitle}>Sign in to your wardrobe</Text>
+      <View style={styles.header}>
+        <Text style={styles.title}>Clothesly</Text>
+        <Text style={styles.subtitle}>Sign in to your wardrobe</Text>
+      </View>
 
-      <AppTextInput
-        autoCapitalize="none"
-        keyboardType="email-address"
-        onChangeText={setEmail}
-        placeholder="Email"
-        style={styles.input}
-        value={email}
-      />
-      <AppTextInput
-        onChangeText={setPassword}
-        placeholder="Password"
-        secureTextEntry
-        style={styles.input}
-        value={password}
-      />
+      <View style={styles.field}>
+        <Ionicons color="#767676" name="mail-outline" size={20} />
+        <AppTextInput
+          autoCapitalize="none"
+          keyboardType="email-address"
+          onChangeText={setEmail}
+          placeholder="Email"
+          style={styles.input}
+          value={email}
+        />
+      </View>
+      <View style={styles.field}>
+        <Ionicons color="#767676" name="lock-closed-outline" size={20} />
+        <AppTextInput
+          onChangeText={setPassword}
+          placeholder="Password"
+          secureTextEntry={!showPassword}
+          style={styles.input}
+          value={password}
+        />
+        <Pressable hitSlop={8} onPress={() => setShowPassword((current) => !current)}>
+          <Ionicons color="#767676" name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={22} />
+        </Pressable>
+      </View>
+
+      <Pressable onPress={() => Alert.alert('Forgot password', 'Hook this to Supabase resetPasswordForEmail flow.')}>
+        <Text style={styles.forgot}>Forgot password?</Text>
+      </Pressable>
 
       <AppButton label="Sign In" loading={loading} loadingLabel="Signing in..." onPress={handleSignIn} style={styles.button} />
 
-      <AppButton label="Continue with Google" onPress={handleGoogleSignIn} style={styles.secondaryButton} variant="secondary" />
+      <View style={styles.dividerRow}>
+        <View style={styles.dividerLine} />
+        <Text style={styles.dividerText}>OR CONTINUE WITH</Text>
+        <View style={styles.dividerLine} />
+      </View>
+
+      <Pressable onPress={handleGoogleSignIn} style={styles.googleButton}>
+        <Image source={{ uri: 'https://www.google.com/favicon.ico' }} style={styles.googleIcon} />
+        <Text style={styles.googleButtonText}>Continue with Google</Text>
+      </Pressable>
 
       <Pressable onPress={() => navigation.navigate('SignUp')}>
-        <Text style={styles.link}>New here? Create an account</Text>
+        <Text style={styles.link}>
+          <Text style={styles.linkMuted}>New here? </Text>
+          <Text style={styles.linkStrong}>Create an account</Text>
+        </Text>
       </Pressable>
     </SafeAreaView>
   );
@@ -114,33 +143,104 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 24,
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     backgroundColor: '#ffffff'
   },
+  header: {
+    marginTop: 72,
+    marginBottom: 36
+  },
   title: {
-    fontSize: 36,
+    fontSize: 50,
     fontWeight: '700',
     color: '#16171a',
-    letterSpacing: -0.8,
-    marginBottom: 6
+    letterSpacing: -1,
+    marginBottom: 10,
+    textAlign: 'center'
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 18,
     color: '#55565d',
-    marginBottom: 24
+    textAlign: 'center'
   },
-  input: {
+  field: {
+    borderWidth: 1.5,
+    borderColor: '#d9dce3',
+    borderRadius: 16,
+    backgroundColor: '#ffffff',
+    paddingHorizontal: 14,
+    minHeight: 58,
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 12
   },
-  button: {
-    marginTop: 4
+  input: {
+    flex: 1,
+    marginLeft: 10,
+    borderWidth: 0,
+    backgroundColor: 'transparent',
+    paddingVertical: 0
   },
-  secondaryButton: {
-    marginTop: 12
+  forgot: {
+    marginTop: 4,
+    marginBottom: 18,
+    alignSelf: 'flex-end',
+    color: '#5f6168',
+    fontSize: 16
+  },
+  button: {
+    marginTop: 4,
+    borderRadius: 18
+  },
+  dividerRow: {
+    marginTop: 20,
+    marginBottom: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#d9dce3'
+  },
+  dividerText: {
+    color: '#6a6c73',
+    fontSize: 13,
+    letterSpacing: 1.4,
+    fontWeight: '500'
+  },
+  googleButton: {
+    minHeight: 56,
+    borderRadius: 16,
+    borderWidth: 1.5,
+    borderColor: '#d9dce3',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 10,
+    backgroundColor: '#ffffff'
+  },
+  googleIcon: {
+    width: 20,
+    height: 20
+  },
+  googleButtonText: {
+    color: '#16171a',
+    fontSize: 17,
+    fontWeight: '600'
   },
   link: {
-    marginTop: 18,
-    color: '#4f5058',
+    marginTop: 26,
     textAlign: 'center'
+  },
+  linkMuted: {
+    color: '#66666d',
+    fontSize: 17
+  },
+  linkStrong: {
+    color: '#16171a',
+    fontSize: 17,
+    fontWeight: '700'
   }
 });
