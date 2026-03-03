@@ -9,7 +9,8 @@ type Props = {
   options: string[];
   selected: string[];
   onToggle: (value: string) => void;
-  onAddCustomOption: (value: string) => Promise<void>;
+  onAddCustomOption?: (value: string) => Promise<void>;
+  allowCustomOption?: boolean;
   disabled?: boolean;
 };
 
@@ -19,30 +20,34 @@ export default function MetadataOptionSelector({
   selected,
   onToggle,
   onAddCustomOption,
+  allowCustomOption = true,
   disabled = false
 }: Props) {
   const [isAddingCustom, setIsAddingCustom] = useState(false);
   const [customOptionText, setCustomOptionText] = useState('');
   const [savingCustom, setSavingCustom] = useState(false);
+  const canAddCustomOption = allowCustomOption && Boolean(onAddCustomOption);
 
   return (
     <View style={styles.group}>
       <View style={styles.header}>
         <Text style={styles.label}>{label}</Text>
-        <AppButton
-          disabled={disabled || savingCustom}
-          label="+ Add"
-          onPress={() => {
-            setIsAddingCustom((current) => !current);
-            setCustomOptionText('');
-          }}
-          style={styles.addButton}
-          textStyle={styles.addButtonText}
-          variant="ghost"
-        />
+        {canAddCustomOption ? (
+          <AppButton
+            disabled={disabled || savingCustom}
+            label="+ Add"
+            onPress={() => {
+              setIsAddingCustom((current) => !current);
+              setCustomOptionText('');
+            }}
+            style={styles.addButton}
+            textStyle={styles.addButtonText}
+            variant="ghost"
+          />
+        ) : null}
       </View>
 
-      {isAddingCustom ? (
+      {canAddCustomOption && isAddingCustom ? (
         <View style={styles.addRow}>
           <AppTextInput
             editable={!disabled && !savingCustom}
@@ -57,6 +62,7 @@ export default function MetadataOptionSelector({
             onPress={async () => {
               const trimmed = customOptionText.trim();
               if (!trimmed) return;
+              if (!onAddCustomOption) return;
               setSavingCustom(true);
               try {
                 await onAddCustomOption(trimmed);

@@ -477,9 +477,9 @@ export default function AddItemScreen({ navigation }: Props) {
               selected={selectedMaterials}
             />
             <MetadataOptionSelector
+              allowCustomOption={false}
               disabled={loading}
               label="Seasons"
-              onAddCustomOption={async (value) => handleAddCustomOption('season', value)}
               onToggle={(value) => setSelectedSeasons((current) => toggleMetadataOption(current, value))}
               options={seasonOptions}
               selected={selectedSeasons}
