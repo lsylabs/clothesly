@@ -8,8 +8,6 @@ const router = Router();
 const uuidV4Like = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const currencyCode = /^[A-Za-z]{3}$/;
 const MAX_NAME_LENGTH = 80;
-const MAX_SHORT_TEXT_LENGTH = 120;
-const MAX_ARRAY_ENTRY_LENGTH = 40;
 const MAX_ARRAY_ITEMS = 25;
 const MAX_NOTES_LENGTH = 4000;
 
@@ -48,19 +46,14 @@ function parseRequiredName(value) {
   return trimmed;
 }
 
-function parseOptionalText(value, fieldName, options = {}) {
+function parseOptionalText(value, fieldName) {
   if (value === undefined) return undefined;
   if (value === null) return null;
   if (typeof value !== 'string') {
     throw new Error(`Invalid ${fieldName}`);
   }
-  const allowLegacyValues = options.allowLegacyValues instanceof Set ? options.allowLegacyValues : new Set();
   const trimmed = value.trim();
   if (!trimmed) return null;
-  const normalizedKey = trimmed.toLowerCase();
-  if (trimmed.length > MAX_SHORT_TEXT_LENGTH && !allowLegacyValues.has(normalizedKey)) {
-    throw new Error(`${fieldName} must be ${MAX_SHORT_TEXT_LENGTH} characters or less`);
-  }
   return trimmed;
 }
 
@@ -93,14 +86,13 @@ function parseOptionalCurrency(value) {
   return trimmed.toUpperCase();
 }
 
-function parseOptionalStringArray(value, fieldName, options = {}) {
+function parseOptionalStringArray(value, fieldName) {
   if (value === undefined) return undefined;
   if (value === null) return [];
   if (!Array.isArray(value)) {
     throw new Error(`${fieldName} must be an array of strings`);
   }
 
-  const allowLegacyValues = options.allowLegacyValues instanceof Set ? options.allowLegacyValues : new Set();
   const deduped = [];
   const seen = new Set();
   for (const entry of value) {
@@ -110,10 +102,6 @@ function parseOptionalStringArray(value, fieldName, options = {}) {
     const trimmed = entry.trim();
     if (!trimmed) continue;
     const normalizedKey = trimmed.toLowerCase();
-    if (trimmed.length > MAX_ARRAY_ENTRY_LENGTH && !allowLegacyValues.has(normalizedKey)) {
-      throw new Error(`${fieldName} entries must be ${MAX_ARRAY_ENTRY_LENGTH} characters or less`);
-    }
-
     if (seen.has(normalizedKey)) continue;
     seen.add(normalizedKey);
     deduped.push(trimmed);
@@ -124,68 +112,6 @@ function parseOptionalStringArray(value, fieldName, options = {}) {
   }
 
   return deduped;
-}
-
-function buildNormalizedStringSet(values) {
-  const normalized = new Set();
-  if (!Array.isArray(values)) return normalized;
-  for (const entry of values) {
-    if (typeof entry !== 'string') continue;
-    const trimmed = entry.trim();
-    if (!trimmed) continue;
-    normalized.add(trimmed.toLowerCase());
-  }
-  return normalized;
-}
-
-function buildNormalizedOptionalTextSet(value) {
-  const normalized = new Set();
-  if (typeof value !== 'string') return normalized;
-  const trimmed = value.trim();
-  if (!trimmed) return normalized;
-  normalized.add(trimmed.toLowerCase());
-  return normalized;
-}
-
-async function loadMetadataOptionAllowlistByCategory({ accessToken, userId, categories }) {
-  const normalizedCategories = Array.from(
-    new Set(categories.filter((entry) => typeof entry === 'string' && entry.trim()).map((entry) => entry.trim()))
-  );
-  const categorySets = Object.fromEntries(normalizedCategories.map((category) => [category, new Set()]));
-  if (!normalizedCategories.length) {
-    return { ok: true, values: categorySets };
-  }
-
-  const categoryFilter = encodeURIComponent(`(${normalizedCategories.join(',')})`);
-  const url =
-    `${config.supabaseUrl}/rest/v1/item_metadata_options` +
-    `?user_id=eq.${encodeURIComponent(userId)}` +
-    `&category=in.${categoryFilter}` +
-    '&select=category,label';
-
-  const { response, body } = await fetchJson(url, {
-    method: 'GET',
-    headers: buildHeaders(accessToken)
-  });
-
-  if (!response.ok) {
-    return {
-      ok: false,
-      upstreamStatus: response.status,
-      upstreamBody: body
-    };
-  }
-
-  const rows = Array.isArray(body) ? body : [];
-  for (const row of rows) {
-    if (!row || typeof row !== 'object') continue;
-    const category = typeof row.category === 'string' ? row.category : '';
-    const label = typeof row.label === 'string' ? row.label.trim() : '';
-    if (!category || !label || !(category in categorySets)) continue;
-    categorySets[category].add(label.toLowerCase());
-  }
-
-  return { ok: true, values: categorySets };
 }
 
 function parseOptionalNotes(value) {
@@ -241,28 +167,11 @@ router.post('/v1/items', requireAuth, async (req, res) => {
       return res.status(400).json({ error: 'Missing or invalid name' });
     }
 
-    const metadataAllowlistResult = await loadMetadataOptionAllowlistByCategory({
-      accessToken: req.auth.accessToken,
-      userId: req.auth.userId,
-      categories: ['material', 'season']
-    });
-    if (!metadataAllowlistResult.ok) {
-      return res.status(502).json({
-        error: 'Failed to read metadata options',
-        upstreamStatus: metadataAllowlistResult.upstreamStatus,
-        upstreamBody: metadataAllowlistResult.upstreamBody
-      });
-    }
-
     let season;
     let material;
     try {
-      season = parseOptionalStringArray(body.season, 'season', {
-        allowLegacyValues: metadataAllowlistResult.values.season
-      });
-      material = parseOptionalStringArray(body.material, 'material', {
-        allowLegacyValues: metadataAllowlistResult.values.material
-      });
+      season = parseOptionalStringArray(body.season, 'season');
+      material = parseOptionalStringArray(body.material, 'material');
     } catch (validationError) {
       return res.status(400).json({
         error: validationError instanceof Error ? validationError.message : 'Invalid request payload'
@@ -345,8 +254,13 @@ router.patch('/v1/items/:id', requireAuth, async (req, res) => {
         throw new Error('Missing or invalid name');
       }
       name = parseRequiredName(body.name);
+      brand = parseOptionalText(body.brand, 'brand');
+      clothingType = parseOptionalText(body.clothingType, 'clothingType');
+      color = parseOptionalText(body.color, 'color');
       priceAmount = parseOptionalPriceAmount(body.priceAmount);
       priceCurrency = parseOptionalCurrency(body.priceCurrency);
+      material = parseOptionalStringArray(body.material, 'material');
+      season = parseOptionalStringArray(body.season, 'season');
       notes = parseOptionalNotes(body.notes);
       if (hasOwnProperty(body, 'closetIds')) {
         closetIds = parseClosetIds(body.closetIds);
@@ -384,28 +298,6 @@ router.patch('/v1/items/:id', requireAuth, async (req, res) => {
       return res.status(404).json({ error: 'Item not found' });
     }
     const existingItem = itemRows[0];
-
-    try {
-      brand = parseOptionalText(body.brand, 'brand', {
-        allowLegacyValues: buildNormalizedOptionalTextSet(existingItem.brand)
-      });
-      clothingType = parseOptionalText(body.clothingType, 'clothingType', {
-        allowLegacyValues: buildNormalizedOptionalTextSet(existingItem.clothing_type)
-      });
-      color = parseOptionalText(body.color, 'color', {
-        allowLegacyValues: buildNormalizedOptionalTextSet(existingItem.color)
-      });
-      material = parseOptionalStringArray(body.material, 'material', {
-        allowLegacyValues: buildNormalizedStringSet(existingItem.material)
-      });
-      season = parseOptionalStringArray(body.season, 'season', {
-        allowLegacyValues: buildNormalizedStringSet(existingItem.season)
-      });
-    } catch (validationError) {
-      return res.status(400).json({
-        error: validationError instanceof Error ? validationError.message : 'Invalid request payload'
-      });
-    }
 
     let verifiedClosetRows = [];
     if (closetIds) {
