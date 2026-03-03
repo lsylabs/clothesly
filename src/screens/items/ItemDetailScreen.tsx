@@ -459,6 +459,7 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
         <Pressable
           disabled={savingChanges}
           hitSlop={8}
+          testID="item-detail-back-button"
           onPress={async () => {
             if (savingChanges) return;
             if (hasPendingChanges) {

@@ -7,5 +7,5 @@
       "@/*": ["src/*"]
     }
   },
-  "exclude": ["**/*.test.ts"]
+  "exclude": ["**/*.test.ts", "**/*.test.tsx", "**/*.ui.test.ts", "**/*.ui.test.tsx"]
 }
