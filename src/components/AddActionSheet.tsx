@@ -30,19 +30,14 @@ export default function AddActionSheet({ visible, onClose, onAddItem, onCreateCl
   return (
     <Modal animationType="fade" transparent visible={visible}>
       <Pressable onPress={onClose} style={styles.backdrop}>
-        <Pressable
-          onPress={() => {
-            return;
-          }}
-          style={[styles.sheetWrapper, { paddingBottom: Math.max(insets.bottom, 8) + 74 }]}
-        >
+        <View pointerEvents="box-none" style={[styles.sheetWrapper, { paddingBottom: Math.max(insets.bottom, 8) + 74 }]}>
           <View style={styles.sheet}>
             <Text style={styles.heading}>Quick Add</Text>
             <ActionRow iconName="shirt-outline" label="Add Item" onPress={onAddItem} />
             <ActionRow iconName="grid-outline" label="Create Closet" onPress={onCreateCloset} />
           </View>
           <View style={styles.pointer} />
-        </Pressable>
+        </View>
       </Pressable>
     </Modal>
   );
@@ -78,7 +73,8 @@ const styles = StyleSheet.create({
     height: 22,
     backgroundColor: '#FAFAFA',
     marginTop: -11,
-    transform: [{ rotate: '45deg' }]
+    transform: [{ rotate: '45deg' }],
+    borderBottomRightRadius: 5
   },
   heading: {
     color: '#8C8C95',
