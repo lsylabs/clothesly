@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Animated, Easing, Pressable, StyleSheet, View } from 'react-native';
 
 import { useNavigation } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -27,10 +27,36 @@ const WardrobeWithTransition = withScreenFadeTransition(WardrobeScreen);
 const OutfitsWithTransition = withScreenFadeTransition(OutfitsScreen);
 const ProfileWithTransition = withScreenFadeTransition(ProfileScreen);
 
-function CenterAddButton({ onPress, bottomInset }: { onPress: () => void; bottomInset: number }) {
+function CenterAddButton({
+  isOpen,
+  onPress,
+  bottomInset
+}: {
+  isOpen: boolean;
+  onPress: () => void;
+  bottomInset: number;
+}) {
+  const rotationProgress = useRef(new Animated.Value(isOpen ? 1 : 0)).current;
+
+  useEffect(() => {
+    Animated.timing(rotationProgress, {
+      toValue: isOpen ? 1 : 0,
+      duration: 220,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true
+    }).start();
+  }, [isOpen, rotationProgress]);
+
+  const rotate = rotationProgress.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '45deg']
+  });
+
   return (
     <Pressable onPress={onPress} style={[styles.centerButton, { marginBottom: bottomInset > 0 ? bottomInset + 2 : 14 }]}>
-      <Ionicons color="#FAFAFA" name="add-outline" size={24} />
+      <Animated.View style={{ transform: [{ rotate }] }}>
+        <Ionicons color="#FAFAFA" name="add-outline" size={24} />
+      </Animated.View>
     </Pressable>
   );
 }
@@ -39,6 +65,10 @@ export default function AppTabs() {
   const [isSheetVisible, setSheetVisible] = useState(false);
   const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>();
   const insets = useSafeAreaInsets();
+
+  const toggleSheet = () => {
+    setSheetVisible((currentValue) => !currentValue);
+  };
 
   return (
     <>
@@ -89,14 +119,16 @@ export default function AppTabs() {
           listeners={{
             tabPress: (event) => {
               event.preventDefault();
-              setSheetVisible(true);
+              toggleSheet();
             }
           }}
           name="Add"
           options={{
             tabBarLabel: '',
             tabBarIcon: () => null,
-            tabBarButton: () => <CenterAddButton bottomInset={insets.bottom} onPress={() => setSheetVisible(true)} />
+            tabBarButton: () => (
+              <CenterAddButton bottomInset={insets.bottom} isOpen={isSheetVisible} onPress={toggleSheet} />
+            )
           }}
         />
         <Tab.Screen component={OutfitsWithTransition} name="Outfits" />
