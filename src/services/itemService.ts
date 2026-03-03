@@ -116,24 +116,33 @@ export async function deleteItem(itemId: string) {
 
 export async function updateItemCategories(input: {
   itemId: string;
+  name: string;
   brand: string;
   clothingType: string;
   color: string;
+  priceAmount: string;
+  priceCurrency: string;
   material: string[];
   season: string[];
   customFields?: Json | null;
 }) {
   const updates: {
+    name: string;
     brand: string | null;
     clothing_type: string | null;
     color: string | null;
+    price_amount: string | null;
+    price_currency: string | null;
     material: string[] | null;
     season: string[] | null;
     custom_fields?: Json | null;
   } = {
+    name: input.name.trim(),
     brand: input.brand.trim() || null,
     clothing_type: input.clothingType.trim() || null,
     color: input.color.trim() || null,
+    price_amount: input.priceAmount.trim() || null,
+    price_currency: input.priceCurrency.trim().toUpperCase() || null,
     material: input.material.length ? input.material : null,
     season: input.season.length ? input.season : null
   };

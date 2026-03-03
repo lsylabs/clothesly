@@ -35,6 +35,7 @@ import { refreshWardrobeData } from '../../services/wardrobeDataService';
 import type { Database, Json } from '../../types/database';
 import type { AppStackParamList } from '../../types/navigation';
 import { withRetry } from '../../utils/retry';
+import { validateCurrency, validateItemName, validatePrice } from '../../utils/validation';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'ItemDetail'>;
 type ItemRow = Database['public']['Tables']['clothing_items']['Row'];
@@ -72,6 +73,9 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
   const [selectedBrands, setSelectedBrands] = useState<string[]>(parseCommaValues(initialCache?.item?.brand ?? null));
   const [selectedTypes, setSelectedTypes] = useState<string[]>(parseCommaValues(initialCache?.item?.clothing_type ?? null));
   const [selectedColors, setSelectedColors] = useState<string[]>(parseCommaValues(initialCache?.item?.color ?? null));
+  const [itemName, setItemName] = useState<string>(initialCache?.item?.name ?? '');
+  const [priceAmount, setPriceAmount] = useState<string>(initialCache?.item?.price_amount ?? '');
+  const [priceCurrency, setPriceCurrency] = useState<string>(initialCache?.item?.price_currency ?? 'USD');
   const [selectedMaterials, setSelectedMaterials] = useState<string[]>(initialCache?.item?.material ?? []);
   const [selectedSeasons, setSelectedSeasons] = useState<string[]>(initialCache?.item?.season ?? []);
   const [notes, setNotes] = useState<string>(extractNotes(initialCache?.item?.custom_fields ?? null));
@@ -116,6 +120,9 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
       setSelectedBrands(parseCommaValues(itemRow.brand));
       setSelectedTypes(parseCommaValues(itemRow.clothing_type));
       setSelectedColors(parseCommaValues(itemRow.color));
+      setItemName(itemRow.name ?? '');
+      setPriceAmount(itemRow.price_amount ?? '');
+      setPriceCurrency(itemRow.price_currency ?? 'USD');
       setSelectedMaterials(itemRow.material ?? []);
       setSelectedSeasons(itemRow.season ?? []);
       setNotes(extractNotes(itemRow.custom_fields));
@@ -167,6 +174,9 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
       setSelectedBrands([]);
       setSelectedTypes([]);
       setSelectedColors([]);
+      setItemName('');
+      setPriceAmount('');
+      setPriceCurrency('USD');
       setSelectedMaterials([]);
       setSelectedSeasons([]);
       setNotes('');
@@ -190,6 +200,9 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
       setSelectedBrands(parseCommaValues(cached.item.brand));
       setSelectedTypes(parseCommaValues(cached.item.clothing_type));
       setSelectedColors(parseCommaValues(cached.item.color));
+      setItemName(cached.item.name ?? '');
+      setPriceAmount(cached.item.price_amount ?? '');
+      setPriceCurrency(cached.item.price_currency ?? 'USD');
       setSelectedMaterials(cached.item.material ?? []);
       setSelectedSeasons(cached.item.season ?? []);
       setNotes(extractNotes(cached.item.custom_fields));
@@ -244,15 +257,18 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
   const hasPendingChanges = useMemo(() => {
     if (!item) return false;
     return !(
+      itemName.trim() === item.name.trim() &&
       sameValues(selectedBrands, parseCommaValues(item.brand)) &&
       sameValues(selectedTypes, parseCommaValues(item.clothing_type)) &&
       sameValues(selectedColors, parseCommaValues(item.color)) &&
+      priceAmount.trim() === (item.price_amount ?? '').trim() &&
+      priceCurrency.trim().toUpperCase() === (item.price_currency ?? 'USD').trim().toUpperCase() &&
       sameValues(selectedMaterials, item.material ?? []) &&
       sameValues(selectedSeasons, item.season ?? []) &&
       notes.trim() === extractNotes(item.custom_fields).trim() &&
       sameValues(selectedClosetIds, savedClosetIds)
     );
-  }, [item, notes, savedClosetIds, selectedBrands, selectedClosetIds, selectedColors, selectedMaterials, selectedSeasons, selectedTypes]);
+  }, [item, itemName, notes, priceAmount, priceCurrency, savedClosetIds, selectedBrands, selectedClosetIds, selectedColors, selectedMaterials, selectedSeasons, selectedTypes]);
 
   useEffect(() => {
     hasPendingChangesRef.current = hasPendingChanges;
@@ -297,6 +313,22 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
     if (blockUi && mountedRef.current) setSavingChanges(true);
     if (mountedRef.current) setErrorText(null);
     try {
+      const nameValidation = validateItemName(itemName);
+      if (!nameValidation.valid) {
+        if (mountedRef.current) setErrorText(nameValidation.message ?? 'Invalid item name.');
+        return false;
+      }
+      const priceValidation = validatePrice(priceAmount);
+      if (!priceValidation.valid) {
+        if (mountedRef.current) setErrorText(priceValidation.message ?? 'Invalid price.');
+        return false;
+      }
+      const currencyValidation = validateCurrency(priceCurrency);
+      if (!currencyValidation.valid) {
+        if (mountedRef.current) setErrorText(currencyValidation.message ?? 'Invalid currency.');
+        return false;
+      }
+
       const trimmedNotes = notes.trim();
       const currentCustomFields = item.custom_fields;
       let nextCustomFields: Json | null = null;
@@ -315,9 +347,12 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
       const updated = await withRetry(() =>
         updateItemCategories({
           itemId: item.id,
+          name: itemName,
           brand: selectedBrands.join(', '),
           clothingType: selectedTypes.join(', '),
           color: selectedColors.join(', '),
+          priceAmount,
+          priceCurrency,
           material: selectedMaterials,
           season: selectedSeasons,
           customFields: nextCustomFields
@@ -347,8 +382,11 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
     }
   }, [
     extraImages,
+    itemName,
     item,
     notes,
+    priceAmount,
+    priceCurrency,
     primaryImageUrl,
     selectedBrands,
     selectedClosetIds,
@@ -444,7 +482,10 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
           )}
 
           <SectionHeader title="Metadata" />
-          <ReadonlyField label="Item Name" value={item.name} />
+          <View style={styles.optionGroup}>
+            <Text style={styles.optionLabel}>Item Name</Text>
+            <AppTextInput editable={!savingChanges} onChangeText={setItemName} placeholder="Item Name" style={styles.input} value={itemName} />
+          </View>
           <MetadataOptionSelector
             disabled={savingChanges}
             label="Brand"
@@ -469,10 +510,28 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
             options={colorOptions}
             selected={selectedColors}
           />
-          <ReadonlyField
-            label="Price"
-            value={item.price_amount ? `${item.price_currency || 'USD'} ${item.price_amount}` : 'N/A'}
-          />
+          <View style={styles.optionGroup}>
+            <Text style={styles.optionLabel}>Price</Text>
+            <View style={styles.priceRow}>
+              <AppTextInput
+                editable={!savingChanges}
+                keyboardType="decimal-pad"
+                onChangeText={setPriceAmount}
+                placeholder="Amount"
+                style={[styles.input, styles.priceAmountInput]}
+                value={priceAmount}
+              />
+              <AppTextInput
+                autoCapitalize="characters"
+                editable={!savingChanges}
+                maxLength={3}
+                onChangeText={setPriceCurrency}
+                placeholder="USD"
+                style={[styles.input, styles.priceCurrencyInput]}
+                value={priceCurrency}
+              />
+            </View>
+          </View>
           <MetadataOptionSelector
             disabled={savingChanges}
             label="Materials"
@@ -510,9 +569,6 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
               <Ionicons color="#0A0A0A" name="chevron-down" size={18} />
             </Pressable>
           </View>
-
-          <SectionHeader title="Extra Outfit Photos" />
-          <ReadonlyField label="Count" value={`${extraImages.length}`} />
 
           {errorText ? <Text style={styles.errorText}>{errorText}</Text> : null}
 
@@ -635,6 +691,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#FAFAFA',
     paddingHorizontal: 12,
     paddingVertical: 12
+  },
+  priceRow: {
+    flexDirection: 'row',
+    gap: 8
+  },
+  priceAmountInput: {
+    flex: 1
+  },
+  priceCurrencyInput: {
+    width: 96
   },
   combobox: {
     borderWidth: 1.5,
