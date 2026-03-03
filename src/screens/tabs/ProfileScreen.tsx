@@ -314,34 +314,34 @@ const styles = StyleSheet.create({
     marginTop: 22,
     borderRadius: 26,
     backgroundColor: '#ffffff',
-    paddingVertical: 28,
+    paddingVertical: 22,
     paddingHorizontal: 22,
     borderWidth: 1,
     borderColor: '#ebecef',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.06,
-    shadowRadius: 16,
-    elevation: 3
+    shadowOffset: { width: 0, height: 14 },
+    shadowOpacity: 0.14,
+    shadowRadius: 26,
+    elevation: 10
   },
   identityRow: {
     flexDirection: 'row',
     alignItems: 'center'
   },
   avatarTap: {
-    width: 106,
-    height: 106,
+    width: 94,
+    height: 94,
     marginRight: 16
   },
   avatar: {
-    width: 106,
-    height: 106,
-    borderRadius: 53
+    width: 94,
+    height: 94,
+    borderRadius: 47
   },
   avatarFallback: {
-    width: 106,
-    height: 106,
-    borderRadius: 53,
+    width: 94,
+    height: 94,
+    borderRadius: 47,
     backgroundColor: '#75777f',
     alignItems: 'center',
     justifyContent: 'center'
@@ -354,11 +354,11 @@ const styles = StyleSheet.create({
   },
   cameraBadge: {
     position: 'absolute',
-    right: -1,
-    bottom: -1,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    right: -2,
+    bottom: -2,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#0a0a0a'
@@ -397,7 +397,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff'
   },
   row: {
-    minHeight: 112,
+    minHeight: 92,
     borderBottomWidth: 1,
     borderBottomColor: '#dadce2',
     paddingHorizontal: 18,
@@ -408,9 +408,9 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0
   },
   rowIconWrap: {
-    width: 62,
-    height: 62,
-    borderRadius: 31,
+    width: 54,
+    height: 54,
+    borderRadius: 27,
     backgroundColor: '#f4f5f7',
     alignItems: 'center',
     justifyContent: 'center',
@@ -421,15 +421,15 @@ const styles = StyleSheet.create({
     paddingRight: 6
   },
   rowTitle: {
-    fontSize: 22,
-    lineHeight: 28,
+    fontSize: 20,
+    lineHeight: 24,
     color: '#63646a',
     fontWeight: '500'
   },
   rowSubtitle: {
-    marginTop: 4,
-    fontSize: 16,
-    lineHeight: 22,
+    marginTop: 2,
+    fontSize: 15,
+    lineHeight: 20,
     color: '#63646a'
   },
   signOut: {
