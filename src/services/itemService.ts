@@ -121,20 +121,48 @@ export async function updateItemCategories(input: {
   color: string;
   material: string[];
   season: string[];
+  customFields?: Json | null;
 }) {
+  const updates: {
+    brand: string | null;
+    clothing_type: string | null;
+    color: string | null;
+    material: string[] | null;
+    season: string[] | null;
+    custom_fields?: Json | null;
+  } = {
+    brand: input.brand.trim() || null,
+    clothing_type: input.clothingType.trim() || null,
+    color: input.color.trim() || null,
+    material: input.material.length ? input.material : null,
+    season: input.season.length ? input.season : null
+  };
+  if ('customFields' in input) {
+    updates.custom_fields = input.customFields ?? null;
+  }
+
   const { data, error } = await supabase
     .from('clothing_items')
-    .update({
-      brand: input.brand.trim() || null,
-      clothing_type: input.clothingType.trim() || null,
-      color: input.color.trim() || null,
-      material: input.material.length ? input.material : null,
-      season: input.season.length ? input.season : null
-    })
+    .update(updates)
     .eq('id', input.itemId)
     .select('*')
     .single();
 
+  if (error) throw error;
+  return data;
+}
+
+export async function replaceItemClosetMappings(itemId: string, closetIds: string[]) {
+  const { error: deleteError } = await supabase.from('clothing_item_closets').delete().eq('item_id', itemId);
+  if (deleteError) throw deleteError;
+
+  if (!closetIds.length) return [];
+
+  const rows = closetIds.map((closetId) => ({
+    item_id: itemId,
+    closet_id: closetId
+  }));
+  const { data, error } = await supabase.from('clothing_item_closets').insert(rows).select('*');
   if (error) throw error;
   return data;
 }

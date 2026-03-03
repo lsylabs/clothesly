@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -28,6 +28,40 @@ export default function AddClosetScreen({ navigation }: Props) {
   const [coverImage, setCoverImage] = useState<LocalImage | null>(null);
   const [loading, setLoading] = useState(false);
   const [errorText, setErrorText] = useState<string | null>(null);
+  const allowExitRef = useRef(false);
+
+  const hasUnsavedChanges = useMemo(() => Boolean(name.trim() || coverImage), [coverImage, name]);
+
+  const confirmDiscard = useCallback(
+    (onDiscard: () => void) => {
+      if (!hasUnsavedChanges) {
+        onDiscard();
+        return;
+      }
+
+      Alert.alert('Discard this closet?', 'Your unsaved changes will be lost.', [
+        { text: 'Keep Editing', style: 'cancel' },
+        { text: 'Discard', style: 'destructive', onPress: onDiscard }
+      ]);
+    },
+    [hasUnsavedChanges]
+  );
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('beforeRemove', (event) => {
+      if (allowExitRef.current || !hasUnsavedChanges) {
+        return;
+      }
+
+      event.preventDefault();
+      confirmDiscard(() => {
+        allowExitRef.current = true;
+        navigation.dispatch(event.data.action);
+      });
+    });
+
+    return unsubscribe;
+  }, [confirmDiscard, hasUnsavedChanges, navigation]);
 
   const handleSave = async () => {
     setErrorText(null);
@@ -55,6 +89,7 @@ export default function AddClosetScreen({ navigation }: Props) {
       await refreshWardrobeData(userId).catch(() => undefined);
 
       Alert.alert('Closet created', 'Your closet is ready.');
+      allowExitRef.current = true;
       navigation.goBack();
     } catch (error) {
       setErrorText(error instanceof Error ? error.message : 'Unknown error');
@@ -66,7 +101,16 @@ export default function AddClosetScreen({ navigation }: Props) {
   return (
     <ScrollView contentContainerStyle={[styles.container, { paddingTop: insets.top + 8 }]} style={styles.screen}>
       <View style={styles.customHeader}>
-        <Pressable hitSlop={8} onPress={() => navigation.goBack()} style={styles.headerCloseTap}>
+        <Pressable
+          hitSlop={8}
+          onPress={() =>
+            confirmDiscard(() => {
+              allowExitRef.current = true;
+              navigation.goBack();
+            })
+          }
+          style={styles.headerCloseTap}
+        >
           <Ionicons color="#0A0A0A" name="close" size={22} />
         </Pressable>
         <Text style={styles.customHeaderTitle}>Create Closet</Text>

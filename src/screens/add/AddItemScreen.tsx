@@ -25,7 +25,7 @@ import { refreshWardrobeData } from '../../services/wardrobeDataService';
 import type { Database } from '../../types/database';
 import type { AppStackParamList } from '../../types/navigation';
 import { withRetry } from '../../utils/retry';
-import { validateCurrency, validateCustomFieldsJson, validateItemName, validatePrice } from '../../utils/validation';
+import { validateCurrency, validateItemName, validatePrice } from '../../utils/validation';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'AddItem'>;
 type ClosetRow = Database['public']['Tables']['closets']['Row'];
@@ -44,7 +44,7 @@ export default function AddItemScreen({ navigation }: Props) {
   const [priceCurrency, setPriceCurrency] = useState('USD');
   const [selectedSeasons, setSelectedSeasons] = useState<string[]>([]);
   const [selectedMaterials, setSelectedMaterials] = useState<string[]>([]);
-  const [customFieldsText, setCustomFieldsText] = useState('{}');
+  const [notes, setNotes] = useState('');
   const [primaryImage, setPrimaryImage] = useState<LocalImage | null>(null);
   const [extraImages, setExtraImages] = useState<LocalImage[]>([]);
   const [closets, setClosets] = useState<ClosetRow[]>([]);
@@ -136,15 +136,6 @@ export default function AddItemScreen({ navigation }: Props) {
     }));
   };
 
-  const parsedCustomFields = useMemo(() => {
-    try {
-      const parsed = JSON.parse(customFieldsText);
-      return parsed;
-    } catch {
-      return null;
-    }
-  }, [customFieldsText]);
-
   const hasUnsavedChanges = useMemo(
     () =>
       Boolean(
@@ -156,15 +147,15 @@ export default function AddItemScreen({ navigation }: Props) {
           (priceCurrency.trim() && priceCurrency.trim().toUpperCase() !== 'USD') ||
           selectedSeasons.length ||
           selectedMaterials.length ||
-          customFieldsText.trim() !== '{}' ||
+          notes.trim() ||
           primaryImage ||
           extraImages.length ||
           selectedClosetIds.length
       ),
     [
-      customFieldsText,
       extraImages.length,
       name,
+      notes,
       priceAmount,
       priceCurrency,
       primaryImage,
@@ -230,12 +221,6 @@ export default function AddItemScreen({ navigation }: Props) {
       return;
     }
 
-    const customValidation = validateCustomFieldsJson(customFieldsText);
-    if (!customValidation.valid) {
-      setErrorText(customValidation.message ?? 'Invalid custom metadata.');
-      return;
-    }
-
     const priceValidation = validatePrice(priceAmount);
     if (!priceValidation.valid) {
       setErrorText(priceValidation.message ?? 'Invalid price.');
@@ -262,7 +247,7 @@ export default function AddItemScreen({ navigation }: Props) {
           priceCurrency,
           season: selectedSeasons,
           material: selectedMaterials,
-          customFields: parsedCustomFields
+          customFields: notes.trim() ? { notes: notes.trim() } : null
         })
       );
       const itemId = created.itemId;
@@ -463,10 +448,10 @@ export default function AddItemScreen({ navigation }: Props) {
             <AppTextInput
               editable={!loading}
               multiline
-              onChangeText={setCustomFieldsText}
-              placeholder='Custom Fields JSON, e.g. {"fit":"oversized"}'
+              onChangeText={setNotes}
+              placeholder="Notes (optional)"
               style={[styles.input, styles.textArea]}
-              value={customFieldsText}
+              value={notes}
             />
           </View>
 
