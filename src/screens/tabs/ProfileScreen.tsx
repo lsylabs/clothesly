@@ -356,7 +356,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   },
   avatarInitials: {
-    fontSize: 28,
+    fontSize: 20,
     fontWeight: '700',
     color: '#FAFAFA',
     letterSpacing: -0.7
@@ -376,14 +376,14 @@ const styles = StyleSheet.create({
     flex: 1
   },
   nameText: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '700',
     letterSpacing: -1,
     color: '#0A0A0A'
   },
   emailText: {
     marginTop: 4,
-    fontSize: 18,
+    fontSize: 16,
     color: '#0A0A0A'
   },
   warning: {
@@ -394,7 +394,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     marginTop: 24,
     marginBottom: 12,
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '700',
     color: '#0A0A0A'
   },
@@ -430,14 +430,14 @@ const styles = StyleSheet.create({
     paddingRight: 6
   },
   rowTitle: {
-    fontSize: 20,
+    fontSize: 18,
     lineHeight: 24,
     color: '#0A0A0A',
     fontWeight: '500'
   },
   rowSubtitle: {
     marginTop: 2,
-    fontSize: 16,
+    fontSize: 14,
     lineHeight: 20,
     color: '#0A0A0A'
   },
@@ -455,7 +455,7 @@ const styles = StyleSheet.create({
     gap: 10
   },
   signOutText: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '500',
     color: '#DC2626'
   },
@@ -464,7 +464,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     textAlign: 'center',
     color: '#0A0A0A',
-    fontSize: 16
+    fontSize: 14
   },
   disabled: {
     opacity: 0.55
