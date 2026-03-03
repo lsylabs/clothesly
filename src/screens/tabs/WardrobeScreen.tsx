@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Image, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ActivityIndicator, Animated, Easing, Image, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -26,6 +26,7 @@ export default function WardrobeScreen() {
   const userId = session?.user.id;
 
   const [viewMode, setViewMode] = useState<ViewMode>('closets');
+  const [renderedViewMode, setRenderedViewMode] = useState<ViewMode>('closets');
   const [loading, setLoading] = useState(false);
   const [closets, setClosets] = useState<ClosetRow[]>([]);
   const [items, setItems] = useState<ItemRow[]>([]);
@@ -36,6 +37,8 @@ export default function WardrobeScreen() {
   const [lastLoadedAt, setLastLoadedAt] = useState<number | null>(null);
   const [itemImageUrls, setItemImageUrls] = useState<Record<string, string>>({});
   const [closetCoverUrls, setClosetCoverUrls] = useState<Record<string, string>>({});
+  const contentOpacity = useRef(new Animated.Value(1)).current;
+  const contentTranslateY = useRef(new Animated.Value(0)).current;
 
   const applyWardrobeData = useCallback(
     (data: { closets: ClosetRow[]; items: ItemRow[]; mappings: MappingRow[]; loadedAt: number }) => {
@@ -207,6 +210,42 @@ export default function WardrobeScreen() {
     return grouped;
   }, [items, mappings]);
 
+  useEffect(() => {
+    if (viewMode === renderedViewMode) return;
+    Animated.parallel([
+      Animated.timing(contentOpacity, {
+        toValue: 0,
+        duration: 110,
+        easing: Easing.in(Easing.quad),
+        useNativeDriver: true
+      }),
+      Animated.timing(contentTranslateY, {
+        toValue: 6,
+        duration: 110,
+        easing: Easing.in(Easing.quad),
+        useNativeDriver: true
+      })
+    ]).start(({ finished }) => {
+      if (!finished) return;
+      setRenderedViewMode(viewMode);
+      contentTranslateY.setValue(-6);
+      Animated.parallel([
+        Animated.timing(contentOpacity, {
+          toValue: 1,
+          duration: 180,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true
+        }),
+        Animated.timing(contentTranslateY, {
+          toValue: 0,
+          duration: 180,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true
+        })
+      ]).start();
+    });
+  }, [contentOpacity, contentTranslateY, renderedViewMode, viewMode]);
+
   return (
     <View style={styles.screen}>
       <View style={styles.header}>
@@ -242,8 +281,8 @@ export default function WardrobeScreen() {
           </View>
         ) : null}
 
-        {viewMode === 'all' ? (
-          <>
+        <Animated.View style={{ opacity: contentOpacity, transform: [{ translateY: contentTranslateY }] }}>
+          {renderedViewMode === 'all' ? (
             <ItemCollectionView
               imageUrls={itemImageUrls}
               items={items}
@@ -251,15 +290,14 @@ export default function WardrobeScreen() {
               onPressItem={(itemId) => navigation.navigate('ItemDetail', { itemId })}
               title={`All Items (${items.length})`}
             />
-          </>
-        ) : null}
+          ) : null}
 
-        {viewMode === 'closets' ? (
-          <>
+          {renderedViewMode === 'closets' ? (
             <Text style={styles.sectionTitle}>Closets ({closets.length})</Text>
-            {closets.length ? (
-              <>
-                <View style={styles.closetGrid}>
+          ) : null}
+          {renderedViewMode === 'closets' ? (
+            closets.length ? (
+              <View style={styles.closetGrid}>
                 <ClosetGrid
                   closetCoverUrls={closetCoverUrls}
                   closetItemIdsByCloset={closetItemIdsByCloset}
@@ -269,7 +307,6 @@ export default function WardrobeScreen() {
                   onPressCloset={(closetId, closetName) => navigation.navigate('ClosetItems', { closetId, closetName })}
                 />
               </View>
-              </>
             ) : (
               <View style={styles.closetGrid}>
                 <ClosetGrid
@@ -281,9 +318,9 @@ export default function WardrobeScreen() {
                   onPressCloset={() => undefined}
                 />
               </View>
-            )}
-          </>
-        ) : null}
+            )
+          ) : null}
+        </Animated.View>
       </ScrollView>
     </View>
   );
@@ -420,6 +457,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     marginTop: 8,
+    marginBottom: 8,
     fontSize: 20,
     fontWeight: '700',
     color: '#0A0A0A'
