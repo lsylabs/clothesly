@@ -91,13 +91,14 @@ function parseOptionalCurrency(value) {
   return trimmed.toUpperCase();
 }
 
-function parseOptionalStringArray(value, fieldName) {
+function parseOptionalStringArray(value, fieldName, options = {}) {
   if (value === undefined) return undefined;
   if (value === null) return [];
   if (!Array.isArray(value)) {
     throw new Error(`${fieldName} must be an array of strings`);
   }
 
+  const allowLegacyValues = options.allowLegacyValues instanceof Set ? options.allowLegacyValues : new Set();
   const deduped = [];
   const seen = new Set();
   for (const entry of value) {
@@ -106,11 +107,11 @@ function parseOptionalStringArray(value, fieldName) {
     }
     const trimmed = entry.trim();
     if (!trimmed) continue;
-    if (trimmed.length > MAX_ARRAY_ENTRY_LENGTH) {
+    const normalizedKey = trimmed.toLowerCase();
+    if (trimmed.length > MAX_ARRAY_ENTRY_LENGTH && !allowLegacyValues.has(normalizedKey)) {
       throw new Error(`${fieldName} entries must be ${MAX_ARRAY_ENTRY_LENGTH} characters or less`);
     }
 
-    const normalizedKey = trimmed.toLowerCase();
     if (seen.has(normalizedKey)) continue;
     seen.add(normalizedKey);
     deduped.push(trimmed);
@@ -121,6 +122,18 @@ function parseOptionalStringArray(value, fieldName) {
   }
 
   return deduped;
+}
+
+function buildNormalizedStringSet(values) {
+  const normalized = new Set();
+  if (!Array.isArray(values)) return normalized;
+  for (const entry of values) {
+    if (typeof entry !== 'string') continue;
+    const trimmed = entry.trim();
+    if (!trimmed) continue;
+    normalized.add(trimmed.toLowerCase());
+  }
+  return normalized;
 }
 
 function parseOptionalNotes(value) {
@@ -175,6 +188,16 @@ router.post('/v1/items', requireAuth, async (req, res) => {
     if (!body.name || typeof body.name !== 'string' || !body.name.trim()) {
       return res.status(400).json({ error: 'Missing or invalid name' });
     }
+    let season;
+    let material;
+    try {
+      season = parseOptionalStringArray(body.season, 'season');
+      material = parseOptionalStringArray(body.material, 'material');
+    } catch (validationError) {
+      return res.status(400).json({
+        error: validationError instanceof Error ? validationError.message : 'Invalid request payload'
+      });
+    }
 
     const headers = {
       ...buildHeaders(req.auth.accessToken),
@@ -191,8 +214,8 @@ router.post('/v1/items', requireAuth, async (req, res) => {
       color: typeof body.color === 'string' && body.color.trim() ? body.color.trim() : null,
       price_amount: typeof body.priceAmount === 'string' && body.priceAmount.trim() ? body.priceAmount.trim() : null,
       price_currency: typeof body.priceCurrency === 'string' && body.priceCurrency.trim() ? body.priceCurrency.trim() : 'USD',
-      season: Array.isArray(body.season) && body.season.length ? body.season : null,
-      material: Array.isArray(body.material) && body.material.length ? body.material : null,
+      season: season === undefined ? null : season.length ? season : null,
+      material: material === undefined ? null : material.length ? material : null,
       custom_fields: body.customFields ?? null
     };
 
@@ -257,8 +280,6 @@ router.patch('/v1/items/:id', requireAuth, async (req, res) => {
       color = parseOptionalText(body.color, 'color');
       priceAmount = parseOptionalPriceAmount(body.priceAmount);
       priceCurrency = parseOptionalCurrency(body.priceCurrency);
-      material = parseOptionalStringArray(body.material, 'material');
-      season = parseOptionalStringArray(body.season, 'season');
       notes = parseOptionalNotes(body.notes);
       if (hasOwnProperty(body, 'closetIds')) {
         closetIds = parseClosetIds(body.closetIds);
@@ -296,6 +317,19 @@ router.patch('/v1/items/:id', requireAuth, async (req, res) => {
       return res.status(404).json({ error: 'Item not found' });
     }
     const existingItem = itemRows[0];
+
+    try {
+      material = parseOptionalStringArray(body.material, 'material', {
+        allowLegacyValues: buildNormalizedStringSet(existingItem.material)
+      });
+      season = parseOptionalStringArray(body.season, 'season', {
+        allowLegacyValues: buildNormalizedStringSet(existingItem.season)
+      });
+    } catch (validationError) {
+      return res.status(400).json({
+        error: validationError instanceof Error ? validationError.message : 'Invalid request payload'
+      });
+    }
 
     let verifiedClosetRows = [];
     if (closetIds) {
