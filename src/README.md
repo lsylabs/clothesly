@@ -70,6 +70,7 @@ The app uses service modules as the only place for network/storage side effects.
 - `services/closetService.ts`: closet CRUD
 - `services/itemMetadataOptionService.ts`: user-custom metadata options
 - `services/profileService.ts`: profile fetch/update helpers (for example avatar path updates)
+- `services/profileCacheService.ts`: profile identity cache (name/email/avatar path) in memory + AsyncStorage
 - `services/mediaService.ts`: image picking, upload/delete, signed URL creation
 - `services/storagePaths.ts`: deterministic storage paths for avatars/closets/items
 
@@ -92,6 +93,10 @@ There are three cache layers:
 3. Item detail cache (`itemDetailCacheService`)
    - Per-item snapshot in memory + AsyncStorage
    - Speeds up detail screen reopening
+
+4. Profile cache (`profileCacheService`)
+   - Caches resolved profile identity (display name, email, avatar path)
+   - Avoids redundant profile fetches on app restart/session restore
 
 Retry behavior:
 

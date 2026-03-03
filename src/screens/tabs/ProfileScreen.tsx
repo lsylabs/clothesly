@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Alert, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Image, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import Ionicons from '@expo/vector-icons/Ionicons';
 
 import { hasSupabaseEnv } from '../../config/env';
 import { useAuth } from '../../services/AuthContext';
+import { getCachedProfile, setCachedProfile } from '../../services/profileCacheService';
 import { getCachedSignedImageUrl } from '../../services/imageCacheService';
 import { pickImageFromCamera, pickImageFromLibrary, uploadImage } from '../../services/mediaService';
 import { getMyProfile, updateMyAvatarPath } from '../../services/profileService';
@@ -38,31 +39,71 @@ export default function ProfileScreen() {
   const { session, signOut } = useAuth();
   const [profile, setProfile] = useState<Database['public']['Tables']['profiles']['Row'] | null>(null);
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
+  const [cachedName, setCachedName] = useState<string | null>(null);
+  const [cachedEmail, setCachedEmail] = useState<string | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
+  const [refreshingProfile, setRefreshingProfile] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   const userId = session?.user?.id ?? null;
-  const email = session?.user?.email ?? 'Unknown user';
+  const email = session?.user?.email ?? cachedEmail ?? 'Unknown user';
   const metadataFullName = session?.user?.user_metadata?.full_name ?? session?.user?.user_metadata?.name ?? null;
 
   useEffect(() => {
     let active = true;
 
-    const run = async () => {
+    const loadProfile = async (forceRemote = false) => {
       setLoadingProfile(true);
+      if (!userId) {
+        if (active) {
+          setLoadingProfile(false);
+          setProfile(null);
+          setAvatarUri(null);
+        }
+        return;
+      }
+
       try {
+        if (!forceRemote) {
+          const cached = await getCachedProfile(userId);
+          if (cached) {
+            if (!active) return;
+            setCachedName(cached.displayName);
+            setCachedEmail(cached.email);
+            if (cached.avatarPath) {
+              const signed = await getCachedSignedImageUrl('avatars', cached.avatarPath).catch(() => null);
+              if (active) setAvatarUri(signed);
+            } else if (active) {
+              setAvatarUri(null);
+            }
+            setLoadingProfile(false);
+            return;
+          }
+        }
+
         const nextProfile = await getMyProfile();
         if (!active) return;
         setProfile(nextProfile);
 
+        const resolvedName =
+          nextProfile?.full_name?.trim() || String(metadataFullName ?? '').trim() || email.split('@')[0]?.trim() || 'Clothesly User';
+        const resolvedEmail = session?.user?.email ?? 'Unknown user';
+
         if (nextProfile?.avatar_path) {
           const signed = await getCachedSignedImageUrl('avatars', nextProfile.avatar_path).catch(() => null);
-          if (active) {
-            setAvatarUri(signed);
-          }
-        } else {
+          if (active) setAvatarUri(signed);
+        } else if (active) {
           setAvatarUri(null);
         }
+
+        setCachedName(resolvedName);
+        setCachedEmail(resolvedEmail);
+        await setCachedProfile(userId, {
+          displayName: resolvedName,
+          email: resolvedEmail,
+          avatarPath: nextProfile?.avatar_path ?? null,
+          cachedAt: Date.now()
+        });
       } catch {
         if (active) {
           setProfile(null);
@@ -75,21 +116,54 @@ export default function ProfileScreen() {
       }
     };
 
-    void run();
+    void loadProfile();
 
     return () => {
       active = false;
     };
-  }, [userId]);
+  }, [email, metadataFullName, session?.user?.email, userId]);
+
+  const handleManualRefresh = async () => {
+    if (!userId || refreshingProfile) return;
+    setRefreshingProfile(true);
+    try {
+      const nextProfile = await getMyProfile();
+      setProfile(nextProfile);
+
+      const resolvedName =
+        nextProfile?.full_name?.trim() || String(metadataFullName ?? '').trim() || email.split('@')[0]?.trim() || 'Clothesly User';
+      const resolvedEmail = session?.user?.email ?? 'Unknown user';
+
+      if (nextProfile?.avatar_path) {
+        const signed = await getCachedSignedImageUrl('avatars', nextProfile.avatar_path).catch(() => null);
+        setAvatarUri(signed);
+      } else {
+        setAvatarUri(null);
+      }
+
+      setCachedName(resolvedName);
+      setCachedEmail(resolvedEmail);
+      await setCachedProfile(userId, {
+        displayName: resolvedName,
+        email: resolvedEmail,
+        avatarPath: nextProfile?.avatar_path ?? null,
+        cachedAt: Date.now()
+      });
+    } catch (error) {
+      Alert.alert('Refresh failed', error instanceof Error ? error.message : 'Please try again.');
+    } finally {
+      setRefreshingProfile(false);
+    }
+  };
 
   const displayName = useMemo(() => {
-    const fullName = profile?.full_name?.trim() || String(metadataFullName ?? '').trim();
+    const fullName = profile?.full_name?.trim() || cachedName?.trim() || String(metadataFullName ?? '').trim();
     if (fullName) return fullName;
 
     const local = email.split('@')[0]?.trim();
     if (local) return local;
     return 'Clothesly User';
-  }, [email, metadataFullName, profile?.full_name]);
+  }, [cachedName, email, metadataFullName, profile?.full_name]);
 
   const initials = useMemo(() => {
     const parts = displayName.split(/\s+/).filter(Boolean);
@@ -112,6 +186,12 @@ export default function ProfileScreen() {
       const signed = await getCachedSignedImageUrl('avatars', path).catch(() => null);
       setAvatarUri(signed);
       setProfile((current) => (current ? { ...current, avatar_path: path } : current));
+      await setCachedProfile(userId, {
+        displayName,
+        email,
+        avatarPath: path,
+        cachedAt: Date.now()
+      });
     } catch (error) {
       Alert.alert('Could not update photo', error instanceof Error ? error.message : 'Please try again.');
     } finally {
@@ -144,7 +224,11 @@ export default function ProfileScreen() {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.content} style={styles.container}>
+    <ScrollView
+      contentContainerStyle={styles.content}
+      refreshControl={<RefreshControl onRefresh={handleManualRefresh} refreshing={refreshingProfile} />}
+      style={styles.container}
+    >
       <Text style={styles.pageTitle}>Profile</Text>
 
       <View style={styles.identityCard}>
