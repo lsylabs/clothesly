@@ -9,6 +9,10 @@ import { prefetchWardrobeData } from '../../services/wardrobeDataService';
 
 export default function HomeScreen() {
   const { session } = useAuth();
+  const fullName = session?.user.user_metadata?.full_name ?? session?.user.user_metadata?.name ?? '';
+  const firstNameFromFullName = typeof fullName === 'string' ? fullName.trim().split(/\s+/)[0] : '';
+  const emailLocalPart = session?.user.email?.split('@')[0] ?? '';
+  const firstName = firstNameFromFullName || emailLocalPart || 'there';
   const userId = session?.user.id;
 
   useEffect(() => {
@@ -24,7 +28,7 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <PageTitle title="Home" />
+      <PageTitle title={`Welcome, ${firstName}`} />
       <InfoCard style={styles.card} text="Dashboard and recommendations will land here in Milestone 3+." />
     </View>
   );

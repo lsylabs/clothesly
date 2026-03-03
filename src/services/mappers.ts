@@ -9,6 +9,7 @@ type ClothingItemClosetRow = Database['public']['Tables']['clothing_item_closets
 
 export const mapProfile = (row: ProfileRow): Profile => ({
   id: row.id,
+  fullName: row.full_name,
   username: row.username,
   avatarPath: row.avatar_path,
   createdAt: row.created_at,
@@ -54,4 +55,3 @@ export const mapClothingItemCloset = (row: ClothingItemClosetRow): ClothingItemC
   closetId: row.closet_id,
   createdAt: row.created_at
 });
-

@@ -13,13 +13,27 @@ import type { AuthStackParamList } from '../../types/navigation';
 type Props = NativeStackScreenProps<AuthStackParamList, 'SignUp'>;
 
 export default function SignUpScreen({ navigation }: Props) {
+  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleSignUp = async () => {
-    if (!email || !password) {
-      Alert.alert('Missing details', 'Please enter both email and password.');
+    if (!fullName.trim() || !email || !password || !confirmPassword) {
+      Alert.alert('Missing details', 'Please complete full name, email, and both password fields.');
+      return;
+    }
+
+    if (password.length < 8) {
+      Alert.alert('Weak password', 'Password must be at least 8 characters.');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      Alert.alert('Password mismatch', 'Password and confirm password must match.');
       return;
     }
 
@@ -33,7 +47,10 @@ export default function SignUpScreen({ navigation }: Props) {
       email,
       password,
       options: {
-        emailRedirectTo
+        emailRedirectTo,
+        data: {
+          full_name: fullName.trim()
+        }
       }
     });
     setLoading(false);
@@ -52,6 +69,7 @@ export default function SignUpScreen({ navigation }: Props) {
       <Text style={styles.title}>Create account</Text>
       <Text style={styles.subtitle}>Start building your digital wardrobe</Text>
 
+      <AppTextInput onChangeText={setFullName} placeholder="Full Name" style={styles.input} value={fullName} />
       <AppTextInput
         autoCapitalize="none"
         keyboardType="email-address"
@@ -63,9 +81,16 @@ export default function SignUpScreen({ navigation }: Props) {
       <AppTextInput
         onChangeText={setPassword}
         placeholder="Password"
-        secureTextEntry
+        secureTextEntry={!showPassword}
         style={styles.input}
         value={password}
+      />
+      <AppTextInput
+        onChangeText={setConfirmPassword}
+        placeholder="Confirm password"
+        secureTextEntry={!showConfirmPassword}
+        style={styles.input}
+        value={confirmPassword}
       />
 
       <AppButton label="Create account" loading={loading} loadingLabel="Creating..." onPress={handleSignUp} style={styles.button} />

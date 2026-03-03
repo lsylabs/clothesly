@@ -2,6 +2,7 @@ import type { Json } from './database';
 
 export type Profile = {
   id: string;
+  fullName: string | null;
   username: string | null;
   avatarPath: string | null;
   createdAt: string;
@@ -47,4 +48,3 @@ export type ClothingItemCloset = {
   closetId: string;
   createdAt: string;
 };
-
