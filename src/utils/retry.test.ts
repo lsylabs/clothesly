@@ -57,5 +57,30 @@ describe('retry utility', () => {
     expect(isRetryableError({ code: 'ETIMEDOUT' })).toBe(true);
     expect(isRetryableError({ code: 'SOME_OTHER_CODE' })).toBe(false);
   });
-});
 
+  it('detects retryable error messages', () => {
+    expect(isRetryableError({ message: 'Network request failed' })).toBe(true);
+    expect(isRetryableError({ message: 'Operation timed out after 30s' })).toBe(true);
+    expect(isRetryableError({ message: 'validation failed' })).toBe(false);
+  });
+
+  it('supports custom retryIf behavior', async () => {
+    let calls = 0;
+
+    await expect(
+      withRetry(
+        async () => {
+          calls += 1;
+          throw new Error('validation failed');
+        },
+        {
+          retries: 2,
+          initialDelayMs: 1,
+          retryIf: () => true
+        }
+      )
+    ).rejects.toThrowError();
+
+    expect(calls).toBe(3);
+  });
+});

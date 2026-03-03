@@ -25,6 +25,11 @@ describe('validation utilities', () => {
     expect(validatePrice('49.95').valid).toBe(true);
   });
 
+  it('accepts empty price and rejects non-numeric price', () => {
+    expect(validatePrice('').valid).toBe(true);
+    expect(validatePrice('abc').valid).toBe(false);
+  });
+
   it('rejects negative prices', () => {
     expect(validatePrice('-1').valid).toBe(false);
   });
@@ -36,6 +41,8 @@ describe('validation utilities', () => {
 
   it('accepts valid currency codes', () => {
     expect(validateCurrency('USD').valid).toBe(true);
+    expect(validateCurrency('usd').valid).toBe(true);
+    expect(validateCurrency('').valid).toBe(true);
   });
 
   it('accepts empty custom fields and JSON object', () => {
@@ -47,5 +54,9 @@ describe('validation utilities', () => {
     expect(validateCustomFieldsJson('[]').valid).toBe(false);
     expect(validateCustomFieldsJson('{bad').valid).toBe(false);
   });
-});
 
+  it('enforces item name boundaries', () => {
+    expect(validateItemName('A'.repeat(81)).valid).toBe(false);
+    expect(validateItemName('Valid Name').valid).toBe(true);
+  });
+});
