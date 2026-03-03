@@ -1,6 +1,4 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import Ionicons from '@expo/vector-icons/Ionicons';
-import { Pressable } from 'react-native';
 
 import AddClosetScreen from '../screens/add/AddClosetScreen';
 import AddItemScreen from '../screens/add/AddItemScreen';
@@ -26,20 +24,25 @@ export default function AppNavigator() {
       }}
     >
       <Stack.Screen component={AppTabs} name="Tabs" options={{ headerShown: false }} />
-      <Stack.Screen component={AddItemScreen} name="AddItem" options={{ presentation: 'modal', title: 'Add Item', headerBackVisible: false }} />
+      <Stack.Screen
+        component={AddItemScreen}
+        name="AddItem"
+        options={{
+          presentation: 'fullScreenModal',
+          animation: 'slide_from_bottom',
+          animationDuration: 220,
+          headerShown: false
+        }}
+      />
       <Stack.Screen
         component={AddClosetScreen}
         name="AddCloset"
-        options={({ navigation }) => ({
-          presentation: 'modal',
-          title: 'Create Closet',
-          headerBackVisible: false,
-          headerLeft: () => (
-            <Pressable hitSlop={8} onPress={() => navigation.goBack()} style={{ paddingHorizontal: 4, paddingVertical: 2 }}>
-              <Ionicons color="#0A0A0A" name="close" size={22} />
-            </Pressable>
-          )
-        })}
+        options={{
+          presentation: 'fullScreenModal',
+          animation: 'slide_from_bottom',
+          animationDuration: 220,
+          headerShown: false
+        }}
       />
       <Stack.Screen
         component={ItemDetailScreen}

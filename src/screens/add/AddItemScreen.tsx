@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import MetadataOptionSelector from '../../components/MetadataOptionSelector';
 import AppButton from '../../components/ui/AppButton';
@@ -32,6 +33,7 @@ type ClosetRow = Database['public']['Tables']['closets']['Row'];
 
 export default function AddItemScreen({ navigation }: Props) {
   const { session } = useAuth();
+  const insets = useSafeAreaInsets();
   const userId = session?.user.id;
   const accessToken = session?.access_token;
 
@@ -190,25 +192,6 @@ export default function AddItemScreen({ navigation }: Props) {
     [hasUnsavedChanges]
   );
 
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerLeft: () => (
-        <Pressable
-          hitSlop={8}
-          onPress={() =>
-            confirmDiscard(() => {
-              allowExitRef.current = true;
-              navigation.goBack();
-            })
-          }
-          style={styles.headerCloseTap}
-        >
-          <Ionicons color="#0A0A0A" name="close" size={22} />
-        </Pressable>
-      )
-    });
-  }, [confirmDiscard, navigation]);
-
   useEffect(() => {
     const unsubscribe = navigation.addListener('beforeRemove', (event) => {
       if (allowExitRef.current || !hasUnsavedChanges) {
@@ -326,7 +309,24 @@ export default function AddItemScreen({ navigation }: Props) {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView contentContainerStyle={[styles.container, { paddingTop: insets.top + 8 }]} style={styles.screen}>
+      <View style={styles.customHeader}>
+        <Pressable
+          hitSlop={8}
+          onPress={() =>
+            confirmDiscard(() => {
+              allowExitRef.current = true;
+              navigation.goBack();
+            })
+          }
+          style={styles.headerCloseTap}
+        >
+          <Ionicons color="#0A0A0A" name="close" size={22} />
+        </Pressable>
+        <Text style={styles.customHeaderTitle}>Add Item</Text>
+        <View style={styles.headerSpacer} />
+      </View>
+
       {!primaryImage ? (
         <View style={styles.imageStep}>
           <Text style={styles.imageStepTitle}>Add A Main Image</Text>
@@ -504,10 +504,29 @@ export default function AddItemScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: '#FAFAFA'
+  },
   container: {
     padding: 16,
     backgroundColor: '#FAFAFA',
+    flexGrow: 1,
     gap: 12
+  },
+  customHeader: {
+    marginBottom: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between'
+  },
+  customHeaderTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#0A0A0A'
+  },
+  headerSpacer: {
+    width: 30
   },
   sectionTitle: {
     marginTop: 8,
@@ -614,6 +633,5 @@ const styles = StyleSheet.create({
   headerCloseTap: {
     paddingHorizontal: 4,
     paddingVertical: 2
-  },
-  
+  }
 });

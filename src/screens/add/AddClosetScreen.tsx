@@ -1,7 +1,9 @@
 import { useState } from 'react';
-import { Alert, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import AppButton from '../../components/ui/AppButton';
 import AppTextInput from '../../components/ui/AppTextInput';
@@ -19,6 +21,7 @@ type Props = NativeStackScreenProps<AppStackParamList, 'AddCloset'>;
 
 export default function AddClosetScreen({ navigation }: Props) {
   const { session } = useAuth();
+  const insets = useSafeAreaInsets();
   const userId = session?.user.id;
 
   const [name, setName] = useState('');
@@ -61,7 +64,15 @@ export default function AddClosetScreen({ navigation }: Props) {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView contentContainerStyle={[styles.container, { paddingTop: insets.top + 8 }]} style={styles.screen}>
+      <View style={styles.customHeader}>
+        <Pressable hitSlop={8} onPress={() => navigation.goBack()} style={styles.headerCloseTap}>
+          <Ionicons color="#0A0A0A" name="close" size={22} />
+        </Pressable>
+        <Text style={styles.customHeaderTitle}>Create Closet</Text>
+        <View style={styles.headerSpacer} />
+      </View>
+
       <Text style={styles.label}>Closet Name</Text>
       <AppTextInput editable={!loading} onChangeText={setName} placeholder="e.g. Formal, Black, Gym" value={name} />
 
@@ -110,10 +121,33 @@ export default function AddClosetScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: '#FAFAFA'
+  },
   container: {
     padding: 16,
     backgroundColor: '#FAFAFA',
+    flexGrow: 1,
     gap: 12
+  },
+  customHeader: {
+    marginBottom: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between'
+  },
+  customHeaderTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#0A0A0A'
+  },
+  headerCloseTap: {
+    paddingHorizontal: 4,
+    paddingVertical: 2
+  },
+  headerSpacer: {
+    width: 30
   },
   label: {
     fontSize: 16,
