@@ -389,7 +389,7 @@ const styles = StyleSheet.create({
   segment: {
     backgroundColor: '#F5F5F5',
     borderRadius: 20,
-    padding: 5,
+    padding: 4,
     flexDirection: 'row'
   },
   segmentButton: {
@@ -399,7 +399,8 @@ const styles = StyleSheet.create({
     borderRadius: 8
   },
   segmentButtonActive: {
-    backgroundColor: '#FAFAFA'
+    backgroundColor: '#FAFAFA',
+    borderRadius: 16
   },
   segmentText: {
     color: '#0A0A0A',
