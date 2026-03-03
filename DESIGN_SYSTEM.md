@@ -38,12 +38,12 @@ An elegant monochrome system with subtle warmth:
 Strong, intentional hierarchy with purposeful letter spacing:
 
 **Scale:**
-- 3XL (3rem) - Hero text
-- 2XL (1.75rem) - Page titles (H1)
-- XL (1.25rem) - Section headers (H2)
-- LG (1.125rem) - Subsections (H3)
-- Base (1rem) - Body text
-- SM (0.875rem) - Labels, captions
+- 3XL (3rem) [48px] - Hero text
+- 2XL (1.75rem) [28px] - Page titles (H1)
+- XL (1.25rem) [20px] - Section headers (H2)
+- LG (1.125rem) [18px] - Subsections (H3)
+- Base (1rem) [16px] - Body text
+- SM (0.875rem) [14px] - Labels, captions
 
 **Weights:**
 - Bold (700) - H1
