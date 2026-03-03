@@ -19,7 +19,7 @@ import { listClosets } from '../../services/closetService';
 import { createItemMetadataOption, listItemMetadataOptions, type ItemMetadataCategory } from '../../services/itemMetadataOptionService';
 import { createItemViaBackend, deleteItem, deleteItemViaBackend, finalizeItemViaBackend } from '../../services/itemService';
 import type { LocalImage } from '../../services/mediaService';
-import { pickImageFromCamera, pickImageFromLibrary, uploadImage } from '../../services/mediaService';
+import { pickImageFromCamera, pickImagesFromLibrary, uploadImage } from '../../services/mediaService';
 import { buildItemExtraImagePath, buildItemPrimaryImagePath } from '../../services/storagePaths';
 import { refreshWardrobeData } from '../../services/wardrobeDataService';
 import type { Database } from '../../types/database';
@@ -29,6 +29,7 @@ import { validateCurrency, validateItemName, validatePrice } from '../../utils/v
 
 type Props = NativeStackScreenProps<AppStackParamList, 'AddItem'>;
 type ClosetRow = Database['public']['Tables']['closets']['Row'];
+const MAX_ITEM_IMAGES = 5;
 
 export default function AddItemScreen({ navigation }: Props) {
   const { session } = useAuth();
@@ -45,14 +46,22 @@ export default function AddItemScreen({ navigation }: Props) {
   const [selectedSeasons, setSelectedSeasons] = useState<string[]>([]);
   const [selectedMaterials, setSelectedMaterials] = useState<string[]>([]);
   const [notes, setNotes] = useState('');
-  const [primaryImage, setPrimaryImage] = useState<LocalImage | null>(null);
-  const [extraImages, setExtraImages] = useState<LocalImage[]>([]);
+  const [images, setImages] = useState<LocalImage[]>([]);
   const [closets, setClosets] = useState<ClosetRow[]>([]);
   const [customOptions, setCustomOptions] = useState<Record<ItemMetadataCategory, string[]>>(EMPTY_ITEM_METADATA_OPTIONS);
   const [selectedClosetIds, setSelectedClosetIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [errorText, setErrorText] = useState<string | null>(null);
   const allowExitRef = useRef(false);
+
+  const addImages = useCallback((incoming: LocalImage[]) => {
+    if (!incoming.length) return;
+    setImages((current) => {
+      const dedupedIncoming = incoming.filter((image) => !current.some((existing) => existing.uri === image.uri));
+      const next = [...current, ...dedupedIncoming].slice(0, MAX_ITEM_IMAGES);
+      return next;
+    });
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -148,17 +157,15 @@ export default function AddItemScreen({ navigation }: Props) {
           selectedSeasons.length ||
           selectedMaterials.length ||
           notes.trim() ||
-          primaryImage ||
-          extraImages.length ||
+          images.length ||
           selectedClosetIds.length
       ),
     [
-      extraImages.length,
+      images.length,
       name,
       notes,
       priceAmount,
       priceCurrency,
-      primaryImage,
       selectedBrands.length,
       selectedClosetIds.length,
       selectedClothingTypes.length,
@@ -216,7 +223,7 @@ export default function AddItemScreen({ navigation }: Props) {
       return;
     }
 
-    if (!primaryImage) {
+    if (!images.length) {
       setErrorText('Please add a primary image for this item.');
       return;
     }
@@ -253,6 +260,8 @@ export default function AddItemScreen({ navigation }: Props) {
       const itemId = created.itemId;
       createdItemId = itemId;
 
+      const primaryImage = images[0];
+      const extraImages = images.slice(1);
       const primaryPath = buildItemPrimaryImagePath(userId, itemId, primaryImage.extension);
       await withRetry(() => uploadImage('items', primaryPath, primaryImage));
 
@@ -314,20 +323,20 @@ export default function AddItemScreen({ navigation }: Props) {
         <View style={styles.headerSpacer} />
       </View>
 
-      {!primaryImage ? (
+      {!images.length ? (
         <View style={styles.imageStep}>
           <View style={styles.imageStepIconWrap}>
             <Ionicons color="#0A0A0A" name="image-outline" size={24} />
           </View>
-          <Text style={styles.imageStepTitle}>Add A Main Image</Text>
-          <Text style={styles.imageStepBody}>Start by adding a photo of your item.</Text>
+          <Text style={styles.imageStepTitle}>Add Item Photos</Text>
+          <Text style={styles.imageStepBody}>Add up to {MAX_ITEM_IMAGES} photos. The first photo will be the main image.</Text>
           <View style={styles.row}>
             <Pressable
               disabled={loading}
               onPress={async () => {
                 try {
                   const image = await pickImageFromCamera();
-                  if (image) setPrimaryImage(image);
+                  if (image) addImages([image]);
                 } catch (error) {
                   Alert.alert('Camera error', error instanceof Error ? error.message : 'Could not open camera');
                 }
@@ -339,8 +348,8 @@ export default function AddItemScreen({ navigation }: Props) {
             <Pressable
               disabled={loading}
               onPress={async () => {
-                const image = await pickImageFromLibrary();
-                if (image) setPrimaryImage(image);
+                const selection = await pickImagesFromLibrary(MAX_ITEM_IMAGES);
+                addImages(selection);
               }}
               style={[styles.secondary, loading && styles.disabled]}
             >
@@ -350,38 +359,68 @@ export default function AddItemScreen({ navigation }: Props) {
         </View>
       ) : null}
 
-      {primaryImage ? (
+      {images.length ? (
         <>
           <View style={styles.card}>
             <Text style={styles.sectionEyebrow}>Photo</Text>
-            <Text style={styles.sectionTitle}>Item Photo</Text>
-            <Image source={{ uri: primaryImage.uri }} style={styles.mainImage} />
+            <Text style={styles.sectionTitle}>Item Photos ({images.length}/{MAX_ITEM_IMAGES})</Text>
+            <Image source={{ uri: images[0].uri }} style={styles.mainImage} />
+            <ScrollView contentContainerStyle={styles.thumbnailRow} horizontal showsHorizontalScrollIndicator={false}>
+              {images.map((image, index) => (
+                <View key={image.uri} style={styles.thumbWrap}>
+                  <Pressable
+                    onPress={() => {
+                      if (loading || index === 0) return;
+                      setImages((current) => {
+                        const next = [...current];
+                        const [picked] = next.splice(index, 1);
+                        next.unshift(picked);
+                        return next;
+                      });
+                    }}
+                  >
+                    <Image source={{ uri: image.uri }} style={[styles.thumbImage, index === 0 && styles.thumbPrimary]} />
+                  </Pressable>
+                  <Pressable
+                    hitSlop={8}
+                    onPress={() => {
+                      if (loading) return;
+                      setImages((current) => current.filter((_, currentIndex) => currentIndex !== index));
+                    }}
+                    style={styles.thumbRemove}
+                  >
+                    <Ionicons color="#FAFAFA" name="close" size={12} />
+                  </Pressable>
+                </View>
+              ))}
+            </ScrollView>
             <View style={styles.row}>
               <Pressable
-                disabled={loading}
+                disabled={loading || images.length >= MAX_ITEM_IMAGES}
                 onPress={async () => {
                   try {
                     const image = await pickImageFromCamera();
-                    if (image) setPrimaryImage(image);
+                    if (image) addImages([image]);
                   } catch (error) {
                     Alert.alert('Camera error', error instanceof Error ? error.message : 'Could not open camera');
                   }
                 }}
                 style={[styles.secondary, loading && styles.disabled]}
               >
-                <Text style={styles.secondaryText}>Retake</Text>
+                <Text style={styles.secondaryText}>Add Camera</Text>
               </Pressable>
               <Pressable
-                disabled={loading}
+                disabled={loading || images.length >= MAX_ITEM_IMAGES}
                 onPress={async () => {
-                  const image = await pickImageFromLibrary();
-                  if (image) setPrimaryImage(image);
+                  const selection = await pickImagesFromLibrary(MAX_ITEM_IMAGES - images.length);
+                  addImages(selection);
                 }}
                 style={[styles.secondary, loading && styles.disabled]}
               >
-                <Text style={styles.secondaryText}>Replace</Text>
+                <Text style={styles.secondaryText}>Add Album</Text>
               </Pressable>
             </View>
+            <Text style={styles.fileText}>Tap a thumbnail to make it the cover image.</Text>
           </View>
 
           <View style={styles.card}>
@@ -479,22 +518,6 @@ export default function AddItemScreen({ navigation }: Props) {
             ) : (
               <Text style={styles.muted}>No closets yet. You can still save item with no closet.</Text>
             )}
-          </View>
-
-          <View style={styles.card}>
-            <Text style={styles.sectionEyebrow}>Outfit</Text>
-            <Text style={styles.sectionTitle}>Extra Photos (optional)</Text>
-            <AppButton
-              disabled={loading}
-              label="Add Extra Photo"
-              onPress={async () => {
-                const image = await pickImageFromLibrary();
-                if (image) setExtraImages((current) => [...current, image]);
-              }}
-              style={styles.secondarySingle}
-              variant="secondary"
-            />
-            <Text style={styles.fileText}>{extraImages.length ? `${extraImages.length} extra image(s) selected` : 'No extra images selected'}</Text>
           </View>
 
           {errorText ? <Text style={styles.errorText}>{errorText}</Text> : null}
@@ -611,16 +634,36 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     backgroundColor: '#F5F5F5'
   },
+  thumbnailRow: {
+    gap: 10
+  },
+  thumbWrap: {
+    marginTop: 4
+  },
+  thumbImage: {
+    width: 68,
+    height: 68,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: '#DFDFE6',
+    backgroundColor: '#F5F5F5'
+  },
+  thumbPrimary: {
+    borderColor: '#0A0A0A'
+  },
+  thumbRemove: {
+    position: 'absolute',
+    top: -6,
+    right: -6,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#0A0A0A'
+  },
   secondary: {
     flex: 1,
-    borderWidth: 1.5,
-    borderColor: '#D9D9DF',
-    borderRadius: 14,
-    paddingVertical: 12,
-    alignItems: 'center',
-    backgroundColor: '#F7F7FA'
-  },
-  secondarySingle: {
     borderWidth: 1.5,
     borderColor: '#D9D9DF',
     borderRadius: 14,

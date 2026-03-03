@@ -70,6 +70,9 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
   const [savedClosetIds, setSavedClosetIds] = useState<string[]>([]);
   const [cachedSelectedClosetNames, setCachedSelectedClosetNames] = useState<string[]>(initialCache?.selectedClosetNames ?? []);
   const [primaryImageUrl, setPrimaryImageUrl] = useState<string | null>(initialCache?.primaryImageUrl ?? null);
+  const [carouselImageUrls, setCarouselImageUrls] = useState<string[]>(initialCache?.primaryImageUrl ? [initialCache.primaryImageUrl] : []);
+  const [carouselIndex, setCarouselIndex] = useState(0);
+  const [carouselWidth, setCarouselWidth] = useState(0);
   const [selectedBrands, setSelectedBrands] = useState<string[]>(parseCommaValues(initialCache?.item?.brand ?? null));
   const [selectedTypes, setSelectedTypes] = useState<string[]>(parseCommaValues(initialCache?.item?.clothing_type ?? null));
   const [selectedColors, setSelectedColors] = useState<string[]>(parseCommaValues(initialCache?.item?.color ?? null));
@@ -128,6 +131,20 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
       setNotes(extractNotes(itemRow.custom_fields));
       const signedUrl = await withRetry(() => getCachedSignedImageUrl('items', itemRow.primary_image_path));
       setPrimaryImageUrl(signedUrl);
+      const extraUrls = (
+        await Promise.all(
+          imageRows.map(async (imageRow) => {
+            try {
+              return await withRetry(() => getCachedSignedImageUrl('items', imageRow.image_path));
+            } catch {
+              return null;
+            }
+          })
+        )
+      ).filter((entry): entry is string => Boolean(entry));
+      const nextCarouselUrls = [signedUrl, ...extraUrls].filter((entry): entry is string => Boolean(entry));
+      setCarouselImageUrls(nextCarouselUrls);
+      setCarouselIndex(0);
       setAllClosets(closetRows);
 
       const grouped: Record<ItemMetadataCategory, string[]> = {
@@ -171,6 +188,8 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
       setSavedClosetIds([]);
       setCachedSelectedClosetNames([]);
       setPrimaryImageUrl(null);
+      setCarouselImageUrls([]);
+      setCarouselIndex(0);
       setSelectedBrands([]);
       setSelectedTypes([]);
       setSelectedColors([]);
@@ -197,6 +216,8 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
       setExtraImages(cached.extraImages);
       setCachedSelectedClosetNames(cached.selectedClosetNames);
       setPrimaryImageUrl(cached.primaryImageUrl);
+      setCarouselImageUrls(cached.primaryImageUrl ? [cached.primaryImageUrl] : []);
+      setCarouselIndex(0);
       setSelectedBrands(parseCommaValues(cached.item.brand));
       setSelectedTypes(parseCommaValues(cached.item.clothing_type));
       setSelectedColors(parseCommaValues(cached.item.color));
@@ -473,8 +494,38 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
       {!loading && item ? (
         <>
           <SectionHeader title="Main Image" />
-          {primaryImageUrl ? (
-            <Image resizeMode="cover" source={{ uri: primaryImageUrl }} style={styles.mainImage} />
+          {carouselImageUrls.length ? (
+            <View
+              onLayout={(event) => {
+                const width = event.nativeEvent.layout.width;
+                if (width > 0 && width !== carouselWidth) {
+                  setCarouselWidth(width);
+                }
+              }}
+              style={styles.carouselWrap}
+            >
+              <ScrollView
+                horizontal
+                onMomentumScrollEnd={(event) => {
+                  if (!carouselWidth) return;
+                  const nextIndex = Math.round(event.nativeEvent.contentOffset.x / carouselWidth);
+                  setCarouselIndex(nextIndex);
+                }}
+                pagingEnabled
+                showsHorizontalScrollIndicator={false}
+              >
+                {carouselImageUrls.map((url) => (
+                  <Image key={url} resizeMode="cover" source={{ uri: url }} style={[styles.mainImage, { width: carouselWidth || undefined }]} />
+                ))}
+              </ScrollView>
+              {carouselImageUrls.length > 1 ? (
+                <View style={styles.carouselDots}>
+                  {carouselImageUrls.map((_, index) => (
+                    <View key={`dot-${index}`} style={[styles.carouselDot, index === carouselIndex && styles.carouselDotActive]} />
+                  ))}
+                </View>
+              ) : null}
+            </View>
           ) : (
             <View style={styles.input}>
               <Text style={styles.valueMuted}>No image available</Text>
@@ -718,11 +769,31 @@ const styles = StyleSheet.create({
   textArea: {
     minHeight: 90
   },
+  carouselWrap: {
+    gap: 10
+  },
   mainImage: {
     width: '100%',
     aspectRatio: 4 / 5,
     borderRadius: 18,
     backgroundColor: '#E8E8E8'
+  },
+  carouselDots: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6
+  },
+  carouselDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#C7C7CE'
+  },
+  carouselDotActive: {
+    width: 18,
+    borderRadius: 4,
+    backgroundColor: '#0A0A0A'
   },
   valueText: {
     color: '#0A0A0A'

@@ -44,6 +44,18 @@ export async function pickImageFromLibrary() {
   return mapAssetToLocalImage(result.assets[0]);
 }
 
+export async function pickImagesFromLibrary(maxCount: number) {
+  const result = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: ['images'],
+    allowsMultipleSelection: true,
+    selectionLimit: Math.max(1, Math.min(20, maxCount)),
+    quality: 0.9
+  });
+
+  if (result.canceled) return [];
+  return result.assets.slice(0, Math.max(1, maxCount)).map(mapAssetToLocalImage);
+}
+
 export async function pickImageFromCamera() {
   const permission = await ImagePicker.requestCameraPermissionsAsync();
   if (!permission.granted) {
