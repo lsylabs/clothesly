@@ -9,6 +9,9 @@
     "android": "expo start --android",
     "web": "expo start --web",
     "test": "vitest run",
+    "test:unit": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:fast": "npm run -s typecheck && npm run -s test:unit",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -33,6 +36,7 @@
   },
   "devDependencies": {
     "@types/react": "~19.1.10",
+    "@vitest/coverage-v8": "^3.2.4",
     "typescript": "~5.8.3",
     "vitest": "^3.2.4"
   }

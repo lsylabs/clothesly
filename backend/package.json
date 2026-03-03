@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "node --watch src/server.js",
     "start": "node src/server.js",
-    "check": "node --check src/server.js"
+    "check": "node --check src/server.js",
+    "test:contract": "node -e \"console.log('Contract tests are scaffolded and will be added in Section 3.')\""
   },
   "dependencies": {
     "cors": "^2.8.5",
