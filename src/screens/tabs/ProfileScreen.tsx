@@ -314,7 +314,7 @@ const styles = StyleSheet.create({
     paddingBottom: 140
   },
   pageTitle: {
-    fontSize: 58,
+    fontSize: 28,
     fontWeight: '700',
     letterSpacing: -1.2,
     color: '#0A0A0A'
@@ -356,7 +356,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   },
   avatarInitials: {
-    fontSize: 44,
+    fontSize: 28,
     fontWeight: '700',
     color: '#FAFAFA',
     letterSpacing: -0.7
@@ -376,7 +376,7 @@ const styles = StyleSheet.create({
     flex: 1
   },
   nameText: {
-    fontSize: 26,
+    fontSize: 20,
     fontWeight: '700',
     letterSpacing: -1,
     color: '#0A0A0A'
@@ -394,7 +394,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     marginTop: 24,
     marginBottom: 12,
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '700',
     color: '#0A0A0A'
   },
@@ -437,7 +437,7 @@ const styles = StyleSheet.create({
   },
   rowSubtitle: {
     marginTop: 2,
-    fontSize: 15,
+    fontSize: 16,
     lineHeight: 20,
     color: '#0A0A0A'
   },

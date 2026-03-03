@@ -426,7 +426,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2
   },
   headerTitle: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: '700',
     color: '#0A0A0A',
     letterSpacing: -0.7

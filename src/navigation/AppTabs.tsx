@@ -52,7 +52,7 @@ export default function AppTabs() {
             return <Ionicons color={color} name={iconName} size={size} />;
           },
           tabBarLabelStyle: {
-            fontSize: 12,
+            fontSize: 14,
             fontWeight: '600',
             marginTop: -2
           },

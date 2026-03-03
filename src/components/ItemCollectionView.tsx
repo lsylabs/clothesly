@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     marginTop: 8,
-    fontSize: 21,
+    fontSize: 20,
     fontWeight: '700',
     color: '#0A0A0A'
   },
@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   },
   addTileIcon: {
-    fontSize: 30,
+    fontSize: 28,
     lineHeight: 30,
     color: '#0A0A0A',
     fontWeight: '300'

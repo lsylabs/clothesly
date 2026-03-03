@@ -10,7 +10,7 @@ export default function PageTitle({ title }: Props) {
 
 const styles = StyleSheet.create({
   title: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: '700',
     letterSpacing: -0.4,
     color: '#0A0A0A'

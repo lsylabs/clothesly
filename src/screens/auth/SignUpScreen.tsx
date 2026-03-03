@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
     marginBottom: 32
   },
   title: {
-    fontSize: 50,
+    fontSize: 48,
     fontWeight: '700',
     color: '#0A0A0A',
     letterSpacing: -1,
@@ -253,7 +253,7 @@ const styles = StyleSheet.create({
   },
   dividerText: {
     color: '#0A0A0A',
-    fontSize: 13,
+    fontSize: 14,
     letterSpacing: 1.4,
     fontWeight: '500'
   },
@@ -274,7 +274,7 @@ const styles = StyleSheet.create({
   },
   googleButtonText: {
     color: '#0A0A0A',
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: '600'
   },
   disclaimer: {

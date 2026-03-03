@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   },
   baseText: {
-    fontSize: 15
+    fontSize: 16
   },
   disabled: {
     opacity: 0.65

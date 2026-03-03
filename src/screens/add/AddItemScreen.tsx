@@ -525,7 +525,7 @@ const styles = StyleSheet.create({
     gap: 12
   },
   imageStepTitle: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '700',
     color: '#0A0A0A'
   },
