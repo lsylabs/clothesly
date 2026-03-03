@@ -82,12 +82,21 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
   const [deleting, setDeleting] = useState(false);
   const [savingChanges, setSavingChanges] = useState(false);
   const [errorText, setErrorText] = useState<string | null>(null);
-  const allowExitRef = useRef(false);
   const hasItemRef = useRef(Boolean(initialCache?.item));
+  const hasPendingChangesRef = useRef(false);
+  const swipeSaveTriggeredRef = useRef(false);
+  const mountedRef = useRef(true);
 
   useEffect(() => {
     hasItemRef.current = Boolean(item);
   }, [item]);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   const loadData = useCallback(async (options?: { blocking?: boolean }) => {
     const blocking = Boolean(options?.blocking);
@@ -245,6 +254,13 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
     );
   }, [item, notes, savedClosetIds, selectedBrands, selectedClosetIds, selectedColors, selectedMaterials, selectedSeasons, selectedTypes]);
 
+  useEffect(() => {
+    hasPendingChangesRef.current = hasPendingChanges;
+    if (hasPendingChanges) {
+      swipeSaveTriggeredRef.current = false;
+    }
+  }, [hasPendingChanges]);
+
   const handleAddCustomOption = async (category: ItemMetadataCategory, value: string) => {
     const trimmed = value.trim();
     if (!trimmed) return;
@@ -275,10 +291,11 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
     );
   };
 
-  const handleSaveChanges = async () => {
+  const handleSaveChanges = useCallback(async (options?: { blockUi?: boolean }) => {
+    const blockUi = options?.blockUi ?? true;
     if (!item) return;
-    setSavingChanges(true);
-    setErrorText(null);
+    if (blockUi && mountedRef.current) setSavingChanges(true);
+    if (mountedRef.current) setErrorText(null);
     try {
       const trimmedNotes = notes.trim();
       const currentCustomFields = item.custom_fields;
@@ -321,29 +338,38 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
       }
       return true;
     } catch (error) {
-      setErrorText(error instanceof Error ? error.message : 'Could not save changes.');
+      if (mountedRef.current) {
+        setErrorText(error instanceof Error ? error.message : 'Could not save changes.');
+      }
       return false;
     } finally {
-      setSavingChanges(false);
+      if (blockUi && mountedRef.current) setSavingChanges(false);
     }
-  };
+  }, [
+    extraImages,
+    item,
+    notes,
+    primaryImageUrl,
+    selectedBrands,
+    selectedClosetIds,
+    selectedClosetNames,
+    selectedColors,
+    selectedMaterials,
+    selectedSeasons,
+    selectedTypes,
+    session?.user.id
+  ]);
 
   useEffect(() => {
-    const unsubscribe = navigation.addListener('beforeRemove', (event) => {
-      if (allowExitRef.current || !item || !hasPendingChanges) {
-        return;
-      }
-      event.preventDefault();
-      void (async () => {
-        const saved = await handleSaveChanges();
-        if (saved) {
-          allowExitRef.current = true;
-          navigation.dispatch(event.data.action);
-        }
-      })();
+    const unsubscribe = navigation.addListener('transitionStart', (event) => {
+      // Native-stack swipe back cannot be prevented safely; save in background on close transition.
+      if (!event.data?.closing) return;
+      if (!hasItemRef.current || !hasPendingChangesRef.current || swipeSaveTriggeredRef.current) return;
+      swipeSaveTriggeredRef.current = true;
+      void handleSaveChanges({ blockUi: false });
     });
     return unsubscribe;
-  }, [handleSaveChanges, hasPendingChanges, item, navigation]);
+  }, [handleSaveChanges, navigation]);
 
   const handleDeleteItem = async () => {
     if (!item) return;
@@ -377,8 +403,12 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
         <Pressable
           disabled={savingChanges}
           hitSlop={8}
-          onPress={() => {
+          onPress={async () => {
             if (savingChanges) return;
+            if (hasPendingChanges) {
+              const saved = await handleSaveChanges({ blockUi: true });
+              if (!saved) return;
+            }
             navigation.goBack();
           }}
           style={styles.headerButton}
