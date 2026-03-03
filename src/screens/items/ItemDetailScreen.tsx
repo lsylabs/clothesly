@@ -589,9 +589,9 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
             selected={selectedMaterials}
           />
           <MetadataOptionSelector
+            allowCustomOption={false}
             disabled={savingChanges}
             label="Seasons"
-            onAddCustomOption={async (value) => handleAddCustomOption('season', value)}
             onToggle={(value) => setSelectedSeasons((current) => toggleMetadataOption(current, value))}
             options={seasonOptions}
             selected={selectedSeasons}

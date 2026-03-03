@@ -28,6 +28,10 @@ export async function createItemMetadataOption(input: {
   category: ItemMetadataCategory;
   label: string;
 }) {
+  if (input.category === 'season') {
+    throw new Error('Season options are fixed and cannot be customized.');
+  }
+
   const trimmedLabel = input.label.trim();
   const maxLength = MAX_METADATA_OPTION_LENGTH[input.category];
   if (trimmedLabel.length > maxLength) {

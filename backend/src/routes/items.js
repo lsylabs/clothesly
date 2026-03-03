@@ -10,6 +10,12 @@ const currencyCode = /^[A-Za-z]{3}$/;
 const MAX_NAME_LENGTH = 80;
 const MAX_ARRAY_ITEMS = 25;
 const MAX_NOTES_LENGTH = 4000;
+const ALLOWED_SEASONS = new Map([
+  ['spring', 'Spring'],
+  ['summer', 'Summer'],
+  ['fall', 'Fall'],
+  ['winter', 'Winter']
+]);
 
 const buildHeaders = (accessToken) => ({
   apikey: config.supabaseAnonKey,
@@ -114,6 +120,19 @@ function parseOptionalStringArray(value, fieldName) {
   return deduped;
 }
 
+function parseOptionalSeasonArray(value) {
+  const seasons = parseOptionalStringArray(value, 'season');
+  if (seasons === undefined) return undefined;
+
+  return seasons.map((entry) => {
+    const canonical = ALLOWED_SEASONS.get(entry.toLowerCase());
+    if (!canonical) {
+      throw new Error('season must only include Spring, Summer, Fall, or Winter');
+    }
+    return canonical;
+  });
+}
+
 function parseOptionalNotes(value) {
   if (value === undefined) return undefined;
   if (value === null) return '';
@@ -170,7 +189,7 @@ router.post('/v1/items', requireAuth, async (req, res) => {
     let season;
     let material;
     try {
-      season = parseOptionalStringArray(body.season, 'season');
+      season = parseOptionalSeasonArray(body.season);
       material = parseOptionalStringArray(body.material, 'material');
     } catch (validationError) {
       return res.status(400).json({
@@ -260,7 +279,7 @@ router.patch('/v1/items/:id', requireAuth, async (req, res) => {
       priceAmount = parseOptionalPriceAmount(body.priceAmount);
       priceCurrency = parseOptionalCurrency(body.priceCurrency);
       material = parseOptionalStringArray(body.material, 'material');
-      season = parseOptionalStringArray(body.season, 'season');
+      season = parseOptionalSeasonArray(body.season);
       notes = parseOptionalNotes(body.notes);
       if (hasOwnProperty(body, 'closetIds')) {
         closetIds = parseClosetIds(body.closetIds);
