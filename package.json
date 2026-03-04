@@ -12,6 +12,7 @@
     "test:unit": "vitest run",
     "test:ui": "jest --config jest.config.cjs --runInBand",
     "test:coverage": "vitest run --coverage",
+    "test:backend-contract": "npm --prefix backend run -s test:contract",
     "test:fast": "npm run -s typecheck && npm run -s test:unit && npm run -s test:ui",
     "typecheck": "tsc --noEmit"
   },

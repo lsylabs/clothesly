@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "node --watch src/server.js",
     "start": "node src/server.js",
-    "check": "node --check src/server.js",
-    "test:contract": "node -e \"console.log('Contract tests are scaffolded and will be added in Section 3.')\""
+    "check": "node --check src/server.js && node --check src/app.js",
+    "test:contract": "vitest run --config vitest.config.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
@@ -16,5 +16,9 @@
     "helmet": "^8.1.0",
     "jose": "^5.10.0",
     "morgan": "^1.10.0"
+  },
+  "devDependencies": {
+    "supertest": "^7.2.2",
+    "vitest": "^4.0.18"
   }
 }
